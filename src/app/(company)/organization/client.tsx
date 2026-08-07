@@ -1,22 +1,16 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import {
-  Archive,
-  ArchiveRestore,
-  Pencil,
-  Plus,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, Plus, Trash2 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RowMenu } from "@/components/ui/row-menu";
 import { FormField } from "@/components/ui/form-field";
 import { FormError } from "@/components/ui/form-error";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
-import { IDLE_FORM_STATE, type FormState } from "@/lib/form-state";
+import { IDLE_FORM_STATE } from "@/lib/form-state";
 import { useSuccessToast } from "@/lib/use-success-toast";
 import {
   createDepartmentAction,
@@ -28,65 +22,6 @@ import {
   updateDepartmentAction,
   updatePositionAction,
 } from "@/features/org/actions";
-
-// ── Shared confirmation dialog ──────────────────────────────────────
-
-type ActionFn = (prev: FormState, formData: FormData) => Promise<FormState>;
-
-function ConfirmDialog({
-  open,
-  onClose,
-  icon: Icon,
-  iconTint,
-  title,
-  body,
-  confirmLabel,
-  destructive = false,
-  action,
-  fields,
-}: {
-  open: boolean;
-  onClose: () => void;
-  icon: LucideIcon;
-  iconTint: string;
-  title: string;
-  body: string;
-  confirmLabel: string;
-  destructive?: boolean;
-  action: ActionFn;
-  fields: Record<string, string>;
-}) {
-  const [state, formAction] = useActionState(action, IDLE_FORM_STATE);
-  const succeeded = useSuccessToast(state);
-  useEffect(() => {
-    if (succeeded) onClose();
-  }, [succeeded, onClose]);
-
-  return (
-    <Dialog open={open} onClose={onClose} title={title}>
-      <div className="flex gap-3.5">
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${iconTint}`}>
-          <Icon className="h-4 w-4" />
-        </span>
-        <p className="text-[13px] leading-relaxed text-body">{body}</p>
-      </div>
-      <form action={formAction} className="mt-5 flex flex-col gap-3">
-        {Object.entries(fields).map(([key, value]) => (
-          <input key={key} type="hidden" name={key} value={value} />
-        ))}
-        <FormError message={state.message} />
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <SubmitButton variant={destructive ? "destructive" : "primary"}>
-            {confirmLabel}
-          </SubmitButton>
-        </div>
-      </form>
-    </Dialog>
-  );
-}
 
 // ── Department form (create / edit) ─────────────────────────────────
 

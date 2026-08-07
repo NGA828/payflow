@@ -2,8 +2,12 @@ import { z } from "zod";
 import { emailSchema } from "@/validations/auth";
 import { passwordSchema } from "@/server/auth/password";
 
-/** Roles that can be granted through a team invitation. */
-export const INVITABLE_ROLES = ["HR_MANAGER", "ACCOUNTANT"] as const;
+/**
+ * Staff roles grantable through a team invitation or a role change.
+ * SUPER_ADMIN is platform-only (never invitable); EMPLOYEE accounts are
+ * created from employee records in a later phase, not from /team.
+ */
+export const INVITABLE_ROLES = ["COMPANY_ADMIN", "HR_MANAGER", "ACCOUNTANT"] as const;
 export type InvitableRole = (typeof INVITABLE_ROLES)[number];
 
 export const inviteTeamSchema = z.object({
@@ -11,6 +15,18 @@ export const inviteTeamSchema = z.object({
   role: z.enum(INVITABLE_ROLES, { error: "Choose a role for these invitations" }),
 });
 export type InviteTeamInput = z.infer<typeof inviteTeamSchema>;
+
+/** Single invite from the /team dialog. */
+export const inviteMemberSchema = z.object({
+  email: emailSchema,
+  role: z.enum(INVITABLE_ROLES, { error: "Choose a role" }),
+});
+export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
+
+/** Role reassignment for an existing staff member. */
+export const changeRoleSchema = z.object({
+  role: z.enum(INVITABLE_ROLES, { error: "Choose a valid role" }),
+});
 
 /** New account created straight from an invitation link. */
 export const acceptInviteNewUserSchema = z.object({

@@ -17,6 +17,7 @@ import { StepBackLink } from "./company-step-form";
 const MAX_ROWS = 5;
 
 const ROLE_HELP: Record<(typeof INVITABLE_ROLES)[number], string> = {
+  COMPANY_ADMIN: "Full control — team, settings, billing",
   HR_MANAGER: "Runs the org and employee records",
   ACCOUNTANT: "Processes payroll and payments",
 };

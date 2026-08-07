@@ -100,14 +100,12 @@ describe("inviteTeamSchema", () => {
     expect(inviteTeamSchema.safeParse({ emails: six, role: "HR_MANAGER" }).success).toBe(false);
   });
 
-  it("accepts a valid batch and rejects admin/employee roles", () => {
-    const parsed = inviteTeamSchema.parse({
-      emails: ["a@x.com", "B@y.com"],
-      role: "ACCOUNTANT",
-    });
-    expect(parsed.role).toBe("ACCOUNTANT");
+  it("accepts staff roles; SUPER_ADMIN and EMPLOYEE stay uninvitable", () => {
+    for (const role of ["COMPANY_ADMIN", "HR_MANAGER", "ACCOUNTANT"] as const) {
+      expect(inviteTeamSchema.safeParse({ emails: ["a@x.com"], role }).success).toBe(true);
+    }
     expect(
-      inviteTeamSchema.safeParse({ emails: ["a@x.com"], role: "COMPANY_ADMIN" }).success,
+      inviteTeamSchema.safeParse({ emails: ["a@x.com"], role: "SUPER_ADMIN" }).success,
     ).toBe(false);
     expect(inviteTeamSchema.safeParse({ emails: ["a@x.com"], role: "EMPLOYEE" }).success).toBe(false);
   });
