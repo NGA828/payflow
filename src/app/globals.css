@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/*
+ * PayFlow design tokens — source of truth:
+ * payflow-designs/payflow-design-system.html
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Brand */
+  --color-indigo-50: #eef2ff;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-200: #c7d2fe;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-teal-50: #f0fdfa;
+  --color-teal-100: #ccfbf1;
+  --color-teal-500: #14b8a6;
+  --color-teal-600: #0d9488;
+  --color-teal-700: #0f766e;
+
+  /* Semantic aliases used across the app */
+  --color-primary: var(--color-primary-600);
+  --color-primary-hover: var(--color-primary-700);
+  --color-primary-tint: var(--color-indigo-50);
+  --color-accent: var(--color-teal-600);
+  --color-accent-hover: var(--color-teal-700);
+  --color-accent-tint: var(--color-teal-50);
+
+  /* Neutrals (slate scale with product names) */
+  --color-ink-900: #0f172a;
+  --color-slate-800: #1e293b;
+  --color-body-600: #475569;
+  --color-slate-500: #64748b;
+  --color-muted-400: #94a3b8;
+  --color-border-200: #e2e8f0;
+  --color-slate-100: #f1f5f9;
+  --color-canvas-50: #f8fafc;
+  --color-ink: var(--color-ink-900);
+  --color-body: var(--color-body-600);
+  --color-muted: var(--color-muted-400);
+  --color-border: var(--color-border-200);
+  --color-canvas: var(--color-canvas-50);
+
+  /* Semantic statuses */
+  --color-success: #16a34a;
+  --color-success-tint: #f0fdf4;
+  --color-warning: #d97706;
+  --color-warning-tint: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-tint: #fef2f2;
+  --color-info: #2563eb;
+  --color-info-tint: #eff6ff;
+
+  /* Radius */
+  --radius-card: 12px;
+  --radius-control: 8px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgb(15 23 42 / 0.07), 0 1px 2px -1px rgb(15 23 42 / 0.05);
+  --shadow-pop: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.05);
+}
+
+@layer base {
+  body {
+    @apply bg-canvas text-body antialiased;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-ink tracking-tight;
+  }
+
+  ::selection {
+    background: var(--color-indigo-100);
+  }
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+@utility brand-gradient {
+  background-image: linear-gradient(135deg, #4f46e5 0%, #0d9488 100%);
+}
+
+@utility animate-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-slate-100) 25%,
+    #eaf0f6 50%,
+    var(--color-slate-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
