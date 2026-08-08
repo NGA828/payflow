@@ -1,0 +1,36 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# env
+.env
+.env.local
+.env.*.local
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# runtime storage (payslips, exports, logos)
+/storage/
+
+# tests
+/playwright-report/
+/test-results/
+
+# design-scratch
+/image-search/
+__pycache__/

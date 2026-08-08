@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PayFlow Design System · v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,450;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════
+   PAYFLOW DESIGN TOKENS — single source of truth
+   ══════════════════════════════════════════════════════════ */
+:root{
+  /* Brand */
+  --indigo-50:#EEF2FF; --indigo-100:#E0E7FF; --indigo-200:#C7D2FE;
+  --primary-600:#4F46E5; --primary-700:#4338CA; --primary-800:#3730A3;
+  --teal-50:#F0FDFA; --teal-100:#CCFBF1; --teal-500:#14B8A6; --teal-600:#0D9488; --teal-700:#0F766E;
+  /* Neutrals (slate) */
+  --ink-900:#0F172A; --slate-800:#1E293B; --body-600:#475569; --slate-500:#64748B;
+  --muted-400:#94A3B8; --slate-300:#CBD5E1; --border-200:#E2E8F0; --slate-100:#F1F5F9;
+  --bg-50:#F8FAFC; --white:#FFFFFF;
+  /* Semantic */
+  --success-600:#16A34A; --success-50:#F0FDF4; --success-100:#DCFCE7;
+  --warning-600:#D97706; --warning-50:#FFFBEB; --warning-100:#FEF3C7;
+  --danger-600:#DC2626;  --danger-50:#FEF2F2;  --danger-100:#FEE2E2;
+  --info-600:#2563EB;    --info-50:#EFF6FF;    --info-100:#DBEAFE;
+  /* Elevation */
+  --shadow-sm:0 1px 2px 0 rgb(15 23 42 / .05);
+  --shadow-md:0 1px 3px 0 rgb(15 23 42 / .07),0 1px 2px -1px rgb(15 23 42 / .05);
+  --shadow-lg:0 10px 15px -3px rgb(15 23 42 / .08),0 4px 6px -4px rgb(15 23 42 / .05);
+  --shadow-xl:0 20px 25px -5px rgb(15 23 42 / .10),0 8px 10px -6px rgb(15 23 42 / .05);
+  /* Radius */
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px; --r-pill:999px;
+  --grad-brand:linear-gradient(135deg,#4F46E5 0%,#0D9488 100%);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-50);color:var(--body-600);
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+h1,h2,h3,h4{color:var(--ink-900);letter-spacing:-0.02em}
+
+/* Doc chrome */
+.doc-nav{position:fixed;inset:0 auto 0 0;width:236px;background:var(--white);border-right:1px solid var(--border-200);padding:28px 16px;overflow:auto}
+.doc-nav .logo{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--ink-900);font-size:15px;margin-bottom:4px}
+.doc-nav small{color:var(--muted-400);display:block;margin-bottom:22px;padding-left:2px}
+.doc-nav a{display:block;color:var(--body-600);text-decoration:none;padding:7px 10px;border-radius:var(--r-md);font-weight:500;font-size:13px}
+.doc-nav a:hover{background:var(--indigo-50);color:var(--primary-700)}
+.doc-nav .n-sec{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-400);margin:16px 8px 4px;font-weight:600}
+main{margin-left:236px;padding:40px 48px 96px;max-width:1180px}
+section{margin-bottom:72px}
+.sec-kicker{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--primary-600);margin-bottom:6px}
+.sec-title{font-size:26px;font-weight:700;margin-bottom:8px}
+.sec-desc{max-width:640px;margin-bottom:28px}
+.demo{background:var(--white);border:1px solid var(--border-200);border-radius:var(--r-xl);padding:28px;box-shadow:var(--shadow-sm)}
+.demo-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-400);margin:0 0 14px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;gap:14px}
+
+/* Swatches */
+.sw{border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border-200);background:#fff;min-width:118px}
+.sw .c{height:64px}
+.sw .m{padding:8px 10px;font-size:11px;color:var(--body-600)}
+.sw .m b{display:block;color:var(--ink-900);font-size:12px;font-weight:600}
+
+/* Type specimens */
+.spec{padding:14px 0;border-bottom:1px solid var(--slate-100)}
+.spec code{font-size:11px;color:var(--muted-400);font-family:ui-monospace,monospace}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;
+  border-radius:var(--r-md);font:600 13.5px 'Inter';border:1px solid transparent;cursor:pointer;
+  transition:background .15s,box-shadow .15s,border-color .15s;white-space:nowrap}
+.btn:active{transform:translateY(0.5px)}
+.btn:focus-visible{outline:2px solid var(--primary-600);outline-offset:2px}
+.btn-primary{background:var(--primary-600);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:var(--primary-700)}
+.btn-secondary{background:#fff;color:var(--ink-900);border-color:var(--border-200);box-shadow:var(--shadow-sm)}
+.btn-secondary:hover{border-color:var(--slate-300);background:var(--bg-50)}
+.btn-ghost{background:transparent;color:var(--body-600)}
+.btn-ghost:hover{background:var(--slate-100);color:var(--ink-900)}
+.btn-destructive{background:var(--danger-600);color:#fff}
+.btn-destructive:hover{background:#B91C1C}
+.btn-teal{background:var(--teal-600);color:#fff}
+.btn-teal:hover{background:var(--teal-700)}
+.btn[disabled],.btn.is-disabled{opacity:.5;cursor:not-allowed;pointer-events:none;box-shadow:none}
+.btn-sm{height:32px;padding:0 12px;font-size:12.5px}
+.btn-lg{height:44px;padding:0 22px;font-size:14.5px;border-radius:10px}
+.btn .spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* Forms */
+.field{display:flex;flex-direction:column;gap:6px;max-width:340px}
+.field label{font-weight:500;font-size:13px;color:var(--ink-900)}
+.field .hint{font-size:12px;color:var(--muted-400)}
+.field .err{font-size:12px;color:var(--danger-600);display:flex;align-items:center;gap:5px}
+.input{height:38px;padding:0 12px;border:1px solid var(--border-200);border-radius:var(--r-md);
+  font:400 13.5px 'Inter';color:var(--ink-900);background:#fff;transition:border-color .15s,box-shadow .15s;width:100%}
+.input::placeholder{color:var(--muted-400)}
+.input:focus{outline:none;border-color:var(--primary-600);box-shadow:0 0 0 3px var(--indigo-100)}
+.input.is-error{border-color:var(--danger-600)}
+.input.is-error:focus{box-shadow:0 0 0 3px var(--danger-100)}
+.input[disabled]{background:var(--slate-100);color:var(--muted-400);cursor:not-allowed}
+.input-money{text-align:right;font-variant-numeric:tabular-nums}
+.select{appearance:none;background:#fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%2364748B" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>') no-repeat right 12px center;padding-right:34px}
+.toggle{width:38px;height:22px;border-radius:999px;background:var(--slate-300);position:relative;cursor:pointer;transition:background .15s;border:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:var(--shadow-sm)}
+.toggle.on{background:var(--primary-600)}
+.toggle.on::after{transform:translateX(16px)}
+
+/* Badges & status pills */
+.badge{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:var(--r-pill);
+  font:600 11px 'Inter';letter-spacing:.02em}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-grey{background:var(--slate-100);color:var(--slate-500)}
+.b-indigo{background:var(--indigo-50);color:var(--primary-700)}
+.b-teal{background:var(--teal-50);color:var(--teal-700)}
+.b-green{background:var(--success-50);color:var(--success-600)}
+.b-amber{background:var(--warning-50);color:var(--warning-600)}
+.b-red{background:var(--danger-50);color:var(--danger-600)}
+.b-blue{background:var(--info-50);color:var(--info-600)}
+.b-outline{background:#fff;border:1px solid var(--border-200);color:var(--body-600)}
+
+/* Cards */
+.card{background:#fff;border:1px solid var(--border-200);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.card-head{padding:18px 20px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.card-head h3{font-size:15px;font-weight:600}
+.card-head p{font-size:12.5px;color:var(--muted-400);margin-top:2px}
+.card-body{padding:18px 20px 20px}
+
+/* KPI */
+.kpi{background:#fff;border:1px solid var(--border-200);border-radius:var(--r-lg);padding:18px 20px;
+  box-shadow:var(--shadow-sm);min-width:220px;flex:1}
+.kpi .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.kpi .label{font-size:12.5px;font-weight:500;color:var(--muted-400)}
+.kpi .icon{width:32px;height:32px;border-radius:var(--r-md);display:grid;place-items:center}
+.kpi .value{font-size:27px;font-weight:700;color:var(--ink-900);letter-spacing:-0.02em;line-height:1.1}
+.kpi .value .cur{font-size:13px;font-weight:600;color:var(--muted-400);margin-left:5px;letter-spacing:0}
+.kpi .foot{margin-top:9px;font-size:12px;color:var(--muted-400);display:flex;align-items:center;gap:7px}
+.delta{display:inline-flex;align-items:center;gap:3px;font:600 11.5px 'Inter';padding:2px 7px;border-radius:999px}
+.delta.up{background:var(--success-50);color:var(--success-600)}
+.delta.down{background:var(--danger-50);color:var(--danger-600)}
+.kpi.hero{background:linear-gradient(135deg,#312e81 0%,#4f46e5 55%,#0d9488 130%);border:none;color:#fff}
+.kpi.hero .label{color:#C7D2FE}.kpi.hero .value{color:#fff}.kpi.hero .value .cur{color:#C7D2FE}
+.kpi.hero .foot{color:#C7D2FE}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;
+  border:1px solid var(--border-200);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.tbl thead th{text-align:left;font:600 11px 'Inter';letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted-400);background:var(--bg-50);padding:11px 16px;border-bottom:1px solid var(--border-200)}
+.tbl tbody td{padding:12px 16px;border-bottom:1px solid var(--slate-100);color:var(--body-600);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover{background:var(--bg-50)}
+.tbl .cell-main{color:var(--ink-900);font-weight:500}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-900);font-weight:500}
+.tbl-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:12.5px;color:var(--muted-400);background:#fff;border:1px solid var(--border-200);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);margin-top:-12px}
+.avatar{width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font:600 11px 'Inter';flex:none}
+.who{display:flex;align-items:center;gap:10px}
+.who .n{color:var(--ink-900);font-weight:500;line-height:1.25}
+.who .s{font-size:12px;color:var(--muted-400)}
+
+/* Skeletons */
+.skel{border-radius:var(--r-md);background:linear-gradient(90deg,var(--slate-100) 25%,#EAF0F6 50%,var(--slate-100) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+
+/* Empty state */
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:44px 24px;gap:4px}
+.empty .ico{width:52px;height:52px;border-radius:14px;background:var(--indigo-50);display:grid;place-items:center;margin-bottom:8px}
+.empty h4{font-size:15px;font-weight:600}
+.empty p{font-size:13px;color:var(--muted-400);max-width:330px;margin-bottom:14px}
+
+/* Banner */
+.banner{display:flex;gap:12px;padding:13px 16px;border-radius:var(--r-lg);font-size:13px;align-items:flex-start}
+.banner b{color:var(--ink-900)}
+.banner-amber{background:var(--warning-50);border:1px solid var(--warning-100);color:#92400E}
+.banner-red{background:var(--danger-50);border:1px solid var(--danger-100);color:#991B1B}
+.banner-blue{background:var(--info-50);border:1px solid var(--info-100);color:#1E40AF}
+
+/* Toast */
+.toast{display:flex;align-items:center;gap:10px;background:var(--ink-900);color:#fff;border-radius:10px;
+  padding:12px 16px;font-size:13px;box-shadow:var(--shadow-xl);min-width:280px}
+
+/* Progress */
+.prog{height:7px;border-radius:99px;background:var(--slate-100);overflow:hidden}
+.prog > div{height:100%;border-radius:99px;background:var(--grad-brand);transition:width .3s}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border-200)}
+.tabs button{background:none;border:none;font:500 13.5px 'Inter';color:var(--muted-400);padding:9px 14px;cursor:pointer;position:relative}
+.tabs button.on{color:var(--primary-700);font-weight:600}
+.tabs button.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:var(--primary-600)}
+
+/* App shell mini-mock */
+.shell{border-radius:var(--r-xl);overflow:hidden;border:1px solid var(--border-200);box-shadow:var(--shadow-lg);display:flex;height:520px;background:var(--bg-50)}
+.side{width:218px;background:var(--ink-900);color:#94A3B8;display:flex;flex-direction:column;flex:none}
+.side .s-logo{display:flex;gap:9px;align-items:center;color:#fff;font-weight:700;font-size:14.5px;padding:18px 18px 16px}
+.side .s-sec{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#475569;font-weight:600;padding:14px 18px 6px}
+.side a{display:flex;gap:10px;align-items:center;margin:1px 10px;padding:7px 9px;border-radius:var(--r-md);color:#94A3B8;text-decoration:none;font-size:13px;font-weight:500}
+.side a svg{flex:none}
+.side a:hover{background:#1E293B;color:#E2E8F0}
+.side a.on{background:linear-gradient(90deg,rgba(79,70,229,.35),rgba(79,70,229,.12));color:#fff;box-shadow:inset 2px 0 0 var(--primary-600)}
+.side .s-user{margin-top:auto;display:flex;gap:10px;align-items:center;padding:14px;border-top:1px solid #1E293B}
+.side .s-user .n{color:#E2E8F0;font-size:13px;font-weight:600;line-height:1.2}
+.side .s-user .r{font-size:11px;color:#64748B}
+.main-x{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;background:#fff;border-bottom:1px solid var(--border-200);display:flex;align-items:center;gap:14px;padding:0 22px;flex:none}
+.topbar .crumbs{font-size:13px;color:var(--muted-400)}
+.topbar .crumbs b{color:var(--ink-900);font-weight:600}
+.search{flex:1;max-width:380px;display:flex;align-items:center;gap:8px;background:var(--slate-100);border-radius:var(--r-pill);padding:7px 14px;color:var(--muted-400);font-size:13px}
+.icon-btn{width:34px;height:34px;border-radius:var(--r-md);display:grid;place-items:center;color:var(--slate-500);position:relative}
+.icon-btn:hover{background:var(--slate-100)}
+.icon-btn .pip{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--danger-600);border:1.5px solid #fff}
+.page{padding:22px;overflow:auto}
+.page h2{font-size:19px;font-weight:700}
+.page .sub{font-size:13px;color:var(--muted-400);margin-top:2px}
+.chart-card{margin-top:14px}
+.axis{font-size:10px;fill:#94A3B8;font-family:Inter}
+
+/* Payslip preview */
+.payslip{background:#fff;border:1px solid var(--border-200);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);max-width:430px;padding:26px 28px}
+.payslip .ps-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--ink-900);padding-bottom:14px;margin-bottom:14px}
+.payslip .co{font-size:15px;font-weight:700;color:var(--ink-900)}
+.payslip .co small{display:block;font:400 10.5px 'Inter';color:var(--muted-400);margin-top:3px}
+.payslip table{width:100%;font-size:12px;border-collapse:collapse}
+.payslip td{padding:5.5px 0;border-bottom:1px dashed var(--slate-100)}
+.payslip td:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-900);font-weight:500}
+.payslip .tot td{border-top:1.5px solid var(--ink-900);border-bottom:none;font-weight:700;color:var(--ink-900);padding-top:9px}
+.payslip .net{display:flex;justify-content:space-between;align-items:center;background:var(--teal-50);border:1px solid var(--teal-100);border-radius:10px;padding:12px 14px;margin-top:12px}
+.payslip .net b{font-size:17px;color:var(--teal-700);font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+.payslip .ps-foot{text-align:center;font-size:10px;color:var(--muted-400);margin-top:14px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.93em}
+@media (max-width:900px){.doc-nav{display:none}main{margin-left:0;padding:24px}}
+</style>
+</head>
+<body>
+
+<nav class="doc-nav">
+  <div class="logo">
+    <svg width="30" height="30" viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="32" y2="32"><stop offset="0" stop-color="#4F46E5"/><stop offset="1" stop-color="#0D9488"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+    PayFlow
+  </div>
+  <small>Design System · v1.0 · Aug 2026</small>
+  <div class="n-sec">Foundations</div>
+  <a href="#principles">Principles</a>
+  <a href="#color">Color</a>
+  <a href="#type">Typography</a>
+  <a href="#logo">Logo</a>
+  <div class="n-sec">Components</div>
+  <a href="#buttons">Buttons</a>
+  <a href="#forms">Forms</a>
+  <a href="#badges">Badges &amp; status</a>
+  <a href="#kpi">KPI cards</a>
+  <a href="#tables">Tables</a>
+  <a href="#feedback">Feedback states</a>
+  <div class="n-sec">Patterns</div>
+  <a href="#shell">App shell</a>
+  <a href="#dashboard-look">Dashboard</a>
+  <a href="#payslip-look">Payslip PDF</a>
+  <a href="#auth-look">Auth screens</a>
+</nav>
+
+<main>
+<section id="principles">
+  <div class="sec-kicker">Foundations</div>
+  <h1 class="sec-title">PayFlow Design System</h1>
+  <p class="sec-desc">The visual source of truth for the PayFlow payroll SaaS. Style direction follows current
+  Dribbble research (see <span class="mono">DESIGN.md</span>): calm, data-dense-but-breathable SaaS surfaces; one
+  signature accent carrying the product; tabular money figures; elevation through tonal steps, not heavy borders.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+    <div class="demo"><div class="demo-label">Calm &amp; trustworthy</div><p style="font-size:13px">Fintech must feel safe. Quiet neutrals, restrained indigo, teal reserved for money-positive moments.</p></div>
+    <div class="demo"><div class="demo-label">Numbers first</div><p style="font-size:13px">Payroll is numbers. Hero KPI typography, tabular-nums everywhere money appears, right-aligned columns.</p></div>
+    <div class="demo"><div class="demo-label">Role-aware</div><p style="font-size:13px">Status pills, role badges and workspace banners make system state legible at a glance.</p></div>
+    <div class="demo"><div class="demo-label">Never dead-ended</div><p style="font-size:13px">Every screen designs its loading, empty, error, forbidden and read-only states as first-class citizens.</p></div>
+  </div>
+</section>
+
+<section id="color">
+  <div class="sec-kicker">Foundations</div>
+  <h2 class="sec-title">Color</h2>
+  <p class="sec-desc">Indigo is the product voice (actions, links, brand). Teal is money/positive financial signal only — never for decoration. Slate carries all text and structure.</p>
+  <div class="demo">
+    <div class="demo-label">Brand</div>
+    <div class="row" style="margin-bottom:18px">
+      <div class="sw"><div class="c" style="background:#EEF2FF"></div><div class="m"><b>Indigo 50</b>#EEF2FF · tint</div></div>
+      <div class="sw"><div class="c" style="background:#C7D2FE"></div><div class="m"><b>Indigo 200</b>#C7D2FE</div></div>
+      <div class="sw"><div class="c" style="background:#4F46E5"></div><div class="m"><b>Primary 600</b>#4F46E5 · default</div></div>
+      <div class="sw"><div class="c" style="background:#4338CA"></div><div class="m"><b>Primary 700</b>#4338CA · hover</div></div>
+      <div class="sw"><div class="c" style="background:#0D9488"></div><div class="m"><b>Teal 600</b>#0D9488 · money+</div></div>
+      <div class="sw"><div class="c" style="background:linear-gradient(135deg,#4F46E5,#0D9488)"></div><div class="m"><b>Brand gradient</b>logo · heroes</div></div>
+    </div>
+    <div class="demo-label">Neutral (slate)</div>
+    <div class="row" style="margin-bottom:18px">
+      <div class="sw"><div class="c" style="background:#0F172A"></div><div class="m"><b>Ink 900</b>#0F172A · headings, sidebar</div></div>
+      <div class="sw"><div class="c" style="background:#475569"></div><div class="m"><b>Body 600</b>#475569 · body text</div></div>
+      <div class="sw"><div class="c" style="background:#94A3B8"></div><div class="m"><b>Muted 400</b>#94A3B8 · captions</div></div>
+      <div class="sw"><div class="c" style="background:#E2E8F0"></div><div class="m"><b>Border 200</b>#E2E8F0</div></div>
+      <div class="sw"><div class="c" style="background:#F1F5F9"></div><div class="m"><b>Slate 100</b>#F1F5F9 · fills</div></div>
+      <div class="sw"><div class="c" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0"></div><div class="m"><b>BG 50</b>#F8FAFC · app canvas</div></div>
+    </div>
+    <div class="demo-label">Semantic</div>
+    <div class="row">
+      <div class="sw"><div class="c" style="background:#16A34A"></div><div class="m"><b>Success</b>#16A34A · paid, active</div></div>
+      <div class="sw"><div class="c" style="background:#D97706"></div><div class="m"><b>Warning</b>#D97706 · pending, trial</div></div>
+      <div class="sw"><div class="c" style="background:#DC2626"></div><div class="m"><b>Danger</b>#DC2626 · failed, destructive</div></div>
+      <div class="sw"><div class="c" style="background:#2563EB"></div><div class="m"><b>Info</b>#2563EB · hints</div></div>
+    </div>
+  </div>
+  <div class="demo" style="margin-top:14px">
+    <div class="demo-label">Status color mapping (canonical)</div>
+    <div class="row">
+      <span class="badge b-amber"><span class="dot"></span>TRIAL</span>
+      <span class="badge b-green"><span class="dot"></span>ACTIVE</span>
+      <span class="badge b-red"><span class="dot"></span>SUSPENDED</span>
+      <span class="badge b-amber"><span class="dot"></span>READ_ONLY</span>
+      <span class="badge b-grey"><span class="dot"></span>DRAFT</span>
+      <span class="badge b-blue"><span class="dot"></span>IN PROGRESS</span>
+      <span class="badge b-indigo"><span class="dot"></span>READY</span>
+      <span class="badge b-blue"><span class="dot"></span>SUBMITTED</span>
+      <span class="badge b-teal"><span class="dot"></span>APPROVED</span>
+      <span class="badge b-green"><span class="dot"></span>PAID</span>
+      <span class="badge b-grey"><span class="dot"></span>LOCKED</span>
+      <span class="badge b-amber"><span class="dot"></span>PENDING</span>
+      <span class="badge b-green"><span class="dot"></span>SUCCESSFUL</span>
+      <span class="badge b-red"><span class="dot"></span>FAILED</span>
+    </div>
+  </div>
+</section>
+
+<section id="type">
+  <div class="sec-kicker">Foundations</div>
+  <h2 class="sec-title">Typography</h2>
+  <p class="sec-desc">Inter everywhere. Hierarchy is built with weight and color, not size jumps. Money always uses tabular figures and is grouped with thin spaces: <b class="tnum" style="color:var(--ink-900)">1 250 000 XAF</b>.</p>
+  <div class="demo">
+    <div class="spec"><code>page-title · 24/30 · bold · -0.02em</code><h1 style="font-size:24px;margin-top:4px">Payroll review — August 2026</h1></div>
+    <div class="spec"><code>section-title · 17/24 · semibold</code><h2 style="font-size:17px;margin-top:4px">Department cost breakdown</h2></div>
+    <div class="spec"><code>card-title · 15/22 · semibold</code><h3 style="font-size:15px;margin-top:4px">Net salary distribution</h3></div>
+    <div class="spec"><code>kpi-value · 27/32 · bold · tabular-nums</code><div class="tnum" style="font-size:27px;font-weight:700;color:var(--ink-900);margin-top:4px">18 432 500 <span style="font-size:13px;color:var(--muted-400)">XAF</span></div></div>
+    <div class="spec"><code>body · 14/22 · regular · #475569</code><p style="margin-top:4px;max-width:520px">Process the monthly run, review anomalies, then submit to the company administrator for approval before payments are released.</p></div>
+    <div class="spec"><code>label/caption · 12.5/18 · medium · #94A3B8</code><p style="font-size:12.5px;color:var(--muted-400);margin-top:4px">LAST SYNCED · 07 AUG 2026, 14:32 WAT</p></div>
+  </div>
+</section>
+
+<section id="logo">
+  <div class="sec-kicker">Foundations</div>
+  <h2 class="sec-title">Logo</h2>
+  <p class="sec-desc">Rounded-square mark with the indigo→teal gradient and a cashflow pulse glyph. Minimum clear space = 1× corner grid; never recolor the gradient.</p>
+  <div class="demo row" style="gap:28px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg width="40" height="40" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+      <span style="font-size:20px;font-weight:700;color:var(--ink-900)">PayFlow</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:var(--ink-900);padding:10px 18px;border-radius:12px">
+      <svg width="28" height="28" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+      <span style="font-size:15px;font-weight:700;color:#fff">PayFlow</span>
+    </div>
+    <div class="row">
+      <svg width="24" height="24" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+      <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+      <svg width="48" height="48" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+    </div>
+  </div>
+</section>
+
+<section id="buttons">
+  <div class="sec-kicker">Components</div>
+  <h2 class="sec-title">Buttons</h2>
+  <div class="demo">
+    <div class="demo-label">Variants</div>
+    <div class="row" style="margin-bottom:18px">
+      <button class="btn btn-primary">Process payroll</button>
+      <button class="btn btn-teal">Approve payroll</button>
+      <button class="btn btn-secondary">Export CSV</button>
+      <button class="btn btn-ghost">Cancel</button>
+      <button class="btn btn-destructive">Revoke invite</button>
+    </div>
+    <div class="demo-label">States &amp; sizes</div>
+    <div class="row">
+      <button class="btn btn-primary btn-lg">Create payroll period</button>
+      <button class="btn btn-primary btn-sm">Save</button>
+      <button class="btn btn-primary" disabled title="Disabled while saving"><span class="spin"></span>Processing…</button>
+      <button class="btn btn-secondary is-disabled">Unlock (not allowed)</button>
+    </div>
+  </div>
+</section>
+
+<section id="forms">
+  <div class="sec-kicker">Components</div>
+  <h2 class="sec-title">Forms</h2>
+  <p class="sec-desc">Labels above inputs, helper text below, inline validation on blur. Money inputs right-align with tabular figures.</p>
+  <div class="demo row" style="align-items:flex-start;gap:28px">
+    <div class="field">
+      <label for="f1">Company name</label>
+      <input id="f1" class="input" placeholder="Prime Builders Ltd">
+      <span class="hint">Shown on payslips and reports.</span>
+    </div>
+    <div class="field">
+      <label for="f2">Basic salary (XAF)</label>
+      <input id="f2" class="input input-money is-error" value="abc">
+      <span class="err">⚠ Enter a valid amount in whole XAF.</span>
+    </div>
+    <div class="field">
+      <label for="f3">Department</label>
+      <select id="f3" class="input select"><option>Finance</option><option>Engineering</option><option>Operations</option></select>
+    </div>
+    <div class="field">
+      <label>Email notifications</label>
+      <div class="row" style="gap:10px"><button class="toggle on" aria-pressed="true"></button><span style="font-size:13px">Payslip available</span></div>
+      <button class="toggle" aria-pressed="false" style="margin-top:6px"></button><span style="font-size:13px">Weekly digest</span>
+    </div>
+  </div>
+</section>
+
+<section id="badges">
+  <div class="sec-kicker">Components</div>
+  <h2 class="sec-title">Badges &amp; role pills</h2>
+  <div class="demo">
+    <div class="demo-label">Roles</div>
+    <div class="row" style="margin-bottom:18px">
+      <span class="badge b-indigo">COMPANY ADMIN</span>
+      <span class="badge b-blue">HR MANAGER</span>
+      <span class="badge b-teal">ACCOUNTANT</span>
+      <span class="badge b-grey">EMPLOYEE</span>
+      <span class="badge" style="background:#0F172A;color:#fff">SUPER ADMIN</span>
+      <span class="badge b-amber">INVITED</span>
+      <span class="badge b-red">DISABLED</span>
+    </div>
+    <div class="demo-label">Employment</div>
+    <div class="row">
+      <span class="badge b-outline">FULL TIME</span>
+      <span class="badge b-outline">PART TIME</span>
+      <span class="badge b-outline">CONTRACT</span>
+      <span class="badge b-outline">INTERN</span>
+      <span class="badge b-green"><span class="dot"></span>ACTIVE</span>
+      <span class="badge b-grey"><span class="dot"></span>INACTIVE</span>
+      <span class="badge b-red"><span class="dot"></span>TERMINATED</span>
+    </div>
+  </div>
+</section>
+
+<section id="kpi">
+  <div class="sec-kicker">Components</div>
+  <h2 class="sec-title">KPI cards</h2>
+  <p class="sec-desc">One optional gradient hero per dashboard (Dribbble pattern: single hero card, rest quiet). Deltas always pair color with an arrow. Subtext explains <i>why</i> — transparent, never cryptic.</p>
+  <div class="demo row" style="align-items:stretch">
+    <div class="kpi hero">
+      <div class="top"><span class="label">Net payroll · Aug 2026</span></div>
+      <div class="value tnum">18 432 500<span class="cur">XAF</span></div>
+      <div class="foot"><span class="delta up">▲ 4.2%</span>vs July · driven by overtime +612 000</div>
+    </div>
+    <div class="kpi">
+      <div class="top"><span class="label">Employees paid</span>
+        <span class="icon" style="background:var(--indigo-50)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></div>
+      <div class="value tnum">34</div>
+      <div class="foot"><span class="delta up">▲ 2</span>new hires this period</div>
+    </div>
+    <div class="kpi">
+      <div class="top"><span class="label">Total deductions</span>
+        <span class="icon" style="background:var(--warning-50)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z"/></svg></span></div>
+      <div class="value tnum">2 104 800<span class="cur">XAF</span></div>
+      <div class="foot"><span class="delta down">▼ 1.1%</span>loans &amp; advances falling</div>
+    </div>
+    <div class="kpi">
+      <div class="top"><span class="label">Payments completed</span>
+        <span class="icon" style="background:var(--teal-50)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+      <div class="value tnum">31<span style="font-size:15px;color:var(--muted-400);font-weight:600"> / 34</span></div>
+      <div class="foot"><span class="badge b-amber">3 PENDING</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="tables">
+  <div class="sec-kicker">Components</div>
+  <h2 class="sec-title">Tables</h2>
+  <p class="sec-desc">Dense but airy: 12px vertical padding, muted uppercase headers, money right-aligned tabular, hover wash, sticky header on scroll, pagination every 20 rows.</p>
+  <table class="tbl">
+    <thead><tr><th>Employee</th><th>Department</th><th class="num" style="text-align:right">Gross</th><th class="num" style="text-align:right">Deductions</th><th class="num" style="text-align:right">Net pay</th><th>vs July</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><div class="who"><span class="avatar" style="background:#4F46E5">NF</span><div><div class="n">Ngo Foning Aminatou</div><div class="s">PB-0001 · Office Assistant</div></div></div></td>
+        <td>Administration</td><td class="num">185 000</td><td class="num">12 500</td><td class="num">172 500</td>
+        <td><span class="delta up">▲ 0.0%</span></td><td><span class="badge b-teal"><span class="dot"></span>APPROVED</span></td>
+      </tr>
+      <tr>
+        <td><div class="who"><span class="avatar" style="background:#0D9488">EK</span><div><div class="n">Ekane Mathias Tabi</div><div class="s">PB-0007 · Site Engineer</div></div></div></td>
+        <td>Engineering</td><td class="num">425 000</td><td class="num">31 250</td><td class="num">393 750</td>
+        <td><span class="delta up">▲ 12.4%</span></td><td><span class="badge b-amber">⚠ ANOMALY</span></td>
+      </tr>
+      <tr>
+        <td><div class="who"><span class="avatar" style="background:#7C3AED">MB</span><div><div class="n">Mbarga Clarisse Odile</div><div class="s">PB-0014 · Accountant</div></div></div></td>
+        <td>Finance</td><td class="num">380 000</td><td class="num">58 000</td><td class="num">322 000</td>
+        <td><span class="delta down">▼ 15.8%</span></td><td><span class="badge b-amber">⚠ ANOMALY</span></td>
+      </tr>
+      <tr>
+        <td><div class="who"><span class="avatar" style="background:#B45309">TE</span><div><div class="n">Tchoupo Ernest Kamdem</div><div class="s">PB-0022 · Driver</div></div></div></td>
+        <td>Operations</td><td class="num">210 000</td><td class="num">0</td><td class="num">210 000</td>
+        <td><span class="delta up">▲ 1.9%</span></td><td><span class="badge b-teal"><span class="dot"></span>APPROVED</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="tbl-foot"><span>Showing 1–20 of 34 employees</span>
+    <div class="row" style="gap:6px"><button class="btn btn-secondary btn-sm">← Prev</button><button class="btn btn-secondary btn-sm">Next →</button></div></div>
+</section>
+
+<section id="feedback">
+  <div class="sec-kicker">Components</div>
+  <h2 class="sec-title">Feedback states</h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="demo"><div class="demo-label">Empty state</div>
+      <div class="empty">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+        <h4>No employees yet</h4><p>Add your first employee to start building payroll. You can import a CSV later.</p>
+        <button class="btn btn-primary">+ Add employee</button>
+      </div></div>
+    <div class="demo"><div class="demo-label">Loading skeleton</div>
+      <div class="row" style="margin-bottom:14px"><div class="skel" style="width:38%;height:26px"></div></div>
+      <div class="skel" style="height:12px;width:96%;margin-bottom:10px"></div>
+      <div class="skel" style="height:12px;width:88%;margin-bottom:10px"></div>
+      <div class="skel" style="height:12px;width:92%;margin-bottom:22px"></div>
+      <div class="skel" style="height:52px"></div>
+    </div>
+    <div class="demo"><div class="demo-label">Workspace banners</div>
+      <div class="banner banner-amber">⚠ <span><b>Read-only workspace.</b> Your trial ended on 21 Aug 2026. You can view data, but changes are disabled until a plan is activated.</span></div>
+      <div class="banner banner-red" style="margin-top:10px">⛔ <span><b>Workspace suspended.</b> Contact PayFlow support to reactivate this company.</span></div>
+      <div class="banner banner-blue" style="margin-top:10px">ⓘ <span><b>Payroll is processing.</b> This takes ~1 min for 100 employees. You can keep working.</span></div>
+    </div>
+    <div class="demo"><div class="demo-label">Toasts &amp; progress</div>
+      <div class="toast">✅ Payroll approved — 34 payslips are now final.</div>
+      <div class="toast" style="margin-top:10px">⚠️ 2 employees are missing bank details.</div>
+      <div style="margin-top:18px">
+        <div class="row" style="justify-content:space-between;font-size:12.5px;color:var(--body-600);margin-bottom:8px"><span><b style="color:var(--ink-900)">Processing payroll…</b></span><span class="tnum">21 / 34 employees</span></div>
+        <div class="prog"><div style="width:62%"></div></div>
+      </div>
+    </div>
+    <div class="demo" style="grid-column:1/-1"><div class="demo-label">Confirmation dialog (destructive / sensitive)</div>
+      <div style="max-width:400px;margin:0 auto;background:#fff;border:1px solid var(--border-200);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);padding:22px">
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:6px">Unlock August payroll?</h3>
+        <p style="font-size:13px">This returns the period to <b>Ready</b> and lets the accountant adjust values again. Payments can’t start until it is re-approved. A reason is required and will be written to the audit log.</p>
+        <div class="field" style="margin:14px 0 18px;max-width:100%"><label>Reason</label><input class="input" placeholder="e.g. Overtime import was missing site B"></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn btn-ghost">Cancel</button><button class="btn btn-destructive">Unlock payroll</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="shell">
+  <div class="sec-kicker">Patterns</div>
+  <h2 class="sec-title">App shell</h2>
+  <p class="sec-desc">Dark ink sidebar, white topbar with pill search, breadcrumb + page actions. Nav is filtered by role; active item carries the indigo edge indicator. Badged notification bell with unread pip.</p>
+  <div class="shell">
+    <div class="side">
+      <div class="s-logo"><svg width="26" height="26" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>PayFlow</div>
+      <div class="s-sec">Overview</div>
+      <a class="on" href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+      <div class="s-sec">Organization</div>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>Departments</a>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Employees</a>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Team &amp; invites</a>
+      <div class="s-sec">Payroll</div>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Periods</a>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Payments</a>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg>Payslips</a>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>Reports</a>
+      <div class="s-sec">Company</div>
+      <a href="#shell"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
+      <div class="s-user"><span class="avatar" style="background:linear-gradient(135deg,#4F46E5,#0D9488)">JD</span><div><div class="n">John Dione</div><div class="r">Company Admin</div></div></div>
+    </div>
+    <div class="main-x">
+      <div class="topbar">
+        <span class="crumbs">Payroll / <b>August 2026</b></span>
+        <div style="flex:1"></div>
+        <div class="search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Search anything</div>
+        <span class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="pip"></span></span>
+        <span class="avatar" style="background:#4F46E5;width:30px;height:30px">JD</span>
+      </div>
+      <div class="page">
+        <div class="banner banner-blue" style="margin-bottom:16px">ⓘ <span><b>Ready for review.</b> 2 anomalies flagged — review before submitting for approval.</span></div>
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap">
+          <div><h2>August 2026 · Payroll review</h2><div class="sub">Period: 1 – 31 Aug · Pay date 5 Sep · 34 employees · Status <span class="badge b-indigo" style="margin-left:4px">READY</span></div></div>
+          <div class="row"><button class="btn btn-secondary">Export</button><button class="btn btn-primary">Submit for approval</button></div>
+        </div>
+        <div class="row" style="margin-top:16px;align-items:stretch">
+          <div class="kpi"><div class="top"><span class="label">Total gross</span></div><div class="value tnum">20 537 300<span class="cur">XAF</span></div></div>
+          <div class="kpi"><div class="top"><span class="label">Total deductions</span></div><div class="value tnum">2 104 800<span class="cur">XAF</span></div></div>
+          <div class="kpi"><div class="top"><span class="label">Total net</span></div><div class="value tnum" style="color:var(--teal-700)">18 432 500<span class="cur">XAF</span></div></div>
+        </div>
+        <div class="card chart-card">
+          <div class="card-head"><div><h3>Net salary by department</h3><p>August 2026 vs July 2026</p></div><span class="badge b-outline">XAF · millions</span></div>
+          <div class="card-body">
+            <svg viewBox="0 0 640 190" width="100%" height="190" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F46E5" stop-opacity=".22"/><stop offset="1" stop-color="#4F46E5" stop-opacity="0"/></linearGradient>
+              </defs>
+              <line x1="30" y1="150" x2="630" y2="150" stroke="#E2E8F0"/><line x1="30" y1="110" x2="630" y2="110" stroke="#F1F5F9"/><line x1="30" y1="70" x2="630" y2="70" stroke="#F1F5F9"/><line x1="30" y1="30" x2="630" y2="30" stroke="#F1F5F9"/>
+              <path d="M40,118 C90,112 120,86 170,90 C220,94 250,62 300,66 C350,70 380,48 430,52 C480,56 520,40 600,36 L600,150 L40,150 Z" fill="url(#ag)"/>
+              <path d="M40,118 C90,112 120,86 170,90 C220,94 250,62 300,66 C350,70 380,48 430,52 C480,56 520,40 600,36" fill="none" stroke="#4F46E5" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M40,126 C90,120 120,100 170,103 C220,106 250,80 300,84 C350,88 380,64 430,68 C480,72 520,58 600,52" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-dasharray="5 5"/>
+              <circle cx="430" cy="52" r="4" fill="#fff" stroke="#4F46E5" stroke-width="2.5"/>
+              <text x="36" y="168" class="axis">Admin</text><text x="140" y="168" class="axis">Finance</text><text x="250" y="168" class="axis">Engineering</text><text x="390" y="168" class="axis">Operations</text><text x="520" y="168" class="axis">HR</text>
+            </svg>
+            <div class="row" style="gap:18px;font-size:12px;color:var(--muted-400)"><span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#4F46E5;margin-right:6px"></span>August</span><span><span style="display:inline-block;width:14px;height:0;border-top:2px dashed #94A3B8;margin-right:6px;vertical-align:middle"></span>July</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="dashboard-look">
+  <div class="sec-kicker">Patterns</div>
+  <h2 class="sec-title">Dashboard pattern</h2>
+  <p class="sec-desc">Bento composition: hero KPI + three quiet KPIs, primary trend chart with dashed previous-period comparison, then role-relevant modules (onboarding checklist, pending approvals, recent payments). Charts use gradient area fills, rounded strokes, faint single-y gridlines only.</p>
+</section>
+
+<section id="payslip-look">
+  <div class="sec-kicker">Patterns</div>
+  <h2 class="sec-title">Payslip PDF layout</h2>
+  <p class="sec-desc">A4, branded header, dashed itemization rules, teal net-pay panel. Payslip number and generation date always present. Rendered with @react-pdf/renderer.</p>
+  <div style="display:flex;justify-content:center">
+    <div class="payslip">
+      <div class="ps-head">
+        <div class="row" style="gap:10px">
+          <svg width="30" height="30" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+          <div class="co">Prime Builders Ltd<small>Mile 4 Nkwen, Bamenda · Cameroon · Tax ID M042612345678A</small></div>
+        </div>
+        <div style="text-align:right">
+          <div class="mono" style="font-size:11px;color:var(--muted-400)">PSLIP</div>
+          <div class="mono" style="font-size:12.5px;font-weight:600;color:var(--ink-900)">PS-2026-00087</div>
+        </div>
+      </div>
+      <table style="margin-bottom:10px">
+        <tr><td style="border:none;color:var(--muted-400)">Employee</td><td style="border:none">Ekane Mathias Tabi · PB-0007</td></tr>
+        <tr><td style="border:none;color:var(--muted-400)">Department / Position</td><td style="border:none">Engineering · Site Engineer</td></tr>
+        <tr><td style="border:none;color:var(--muted-400)">Period / Pay date</td><td style="border:none">1 – 31 Aug 2026 · 5 Sep 2026</td></tr>
+      </table>
+      <div class="demo-label" style="margin:10px 0 2px">Earnings</div>
+      <table>
+        <tr><td>Basic salary</td><td>425 000</td></tr>
+        <tr><td>Overtime · 9.5 h × 1.2</td><td>27 900</td></tr>
+        <tr><td>Transport allowance</td><td>25 000</td></tr>
+        <tr class="tot"><td>Gross salary</td><td>477 900</td></tr>
+      </table>
+      <div class="demo-label" style="margin:16px 0 2px">Deductions</div>
+      <table>
+        <tr><td>Income tax (0%)</td><td>0</td></tr>
+        <tr><td>Salary advance repayment</td><td>50 000</td></tr>
+        <tr class="tot"><td>Total deductions</td><td>50 000</td></tr>
+      </table>
+      <div class="net"><span style="font-weight:600;color:var(--ink-900);font-size:13px">Net salary payable</span><b class="tnum">427 900 XAF</b></div>
+      <div class="ps-foot">Generated 05 Sep 2026 · PayFlow · This document was produced electronically and is valid without signature.</div>
+    </div>
+  </div>
+</section>
+
+<section id="auth-look">
+  <div class="sec-kicker">Patterns</div>
+  <h2 class="sec-title">Auth screens</h2>
+  <p class="sec-desc">Centered card on soft canvas with a subtle brand gradient glow; single-column forms; trust copy under the card. Register collects person + company in one step, then routes to email verification → setup wizard.</p>
+  <div class="demo" style="background:radial-gradient(600px 300px at 20% 0%,rgba(79,70,229,.10),transparent),radial-gradient(600px 300px at 90% 100%,rgba(13,148,136,.10),transparent),var(--bg-50)">
+    <div style="max-width:380px;margin:0 auto;background:#fff;border:1px solid var(--border-200);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);padding:30px">
+      <div class="row" style="gap:9px;justify-content:center;margin-bottom:20px">
+        <svg width="28" height="28" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M9 21.5c3-1 4.5-6.5 7-7s4 5.5 7 4.5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="21" r="2.1" fill="#fff"/><circle cx="23" cy="16" r="2.1" fill="#fff"/></svg>
+        <span style="font-size:17px;font-weight:700;color:var(--ink-900)">PayFlow</span>
+      </div>
+      <h3 style="text-align:center;font-size:18px;font-weight:700">Create your workspace</h3>
+      <p style="text-align:center;font-size:12.5px;color:var(--muted-400);margin:5px 0 20px">14-day free trial · No card required · Cancel anytime</p>
+      <div class="field" style="max-width:100%;margin-bottom:12px"><label>Full name</label><input class="input" placeholder="John Dione"></div>
+      <div class="field" style="max-width:100%;margin-bottom:12px"><label>Work email</label><input class="input" placeholder="you@company.com"></div>
+      <div class="field" style="max-width:100%;margin-bottom:12px"><label>Company name</label><input class="input" placeholder="Prime Builders Ltd"></div>
+      <div class="field" style="max-width:100%;margin-bottom:18px"><label>Password</label><input class="input" type="password" placeholder="Min. 10 characters"></div>
+      <button class="btn btn-primary btn-lg" style="width:100%">Create workspace</button>
+      <p style="text-align:center;font-size:12px;color:var(--muted-400);margin-top:14px">Already have an account? <a href="#auth-look" style="color:var(--primary-600);font-weight:600;text-decoration:none">Sign in</a></p>
+    </div>
+  </div>
+</section>
+</main>
+</body>
+</html>
