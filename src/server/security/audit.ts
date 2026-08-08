@@ -20,6 +20,8 @@ export type AuditAction =
   | "team.membership_status_changed"
   | "employee.created"
   | "employee.updated"
+  | "employee.payment_updated"
+  | "employee.status_changed"
   | "employee.terminated"
   | "org.department_created"
   | "org.department_updated"

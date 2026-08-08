@@ -11,8 +11,9 @@ import "dotenv/config";
 import { getDb, disposeDb } from "@/lib/db";
 import { registerCompany } from "@/server/services/onboarding.service";
 import { updateCompanyInfo, updatePayrollSettings } from "@/server/services/company.service";
-import { createInitialDepartments } from "@/server/services/org.service";
+import { createInitialDepartments, createPosition } from "@/server/services/org.service";
 import { completeSetup } from "@/server/services/setup.service";
+import { createEmployee, setEmployeeStatus, updatePaymentDetails } from "@/server/services/employee.service";
 import type { CompanyContext } from "@/server/tenant/context";
 
 export const E2E_USER = {
@@ -65,30 +66,115 @@ async function main() {
   };
 
   if (company.setupCompletedAt) {
-    console.log(`Fixture already complete: ${E2E_USER.email}`);
+    console.log("Fixture account already set up — ensuring demo employees.");
+  } else {
+    await updateCompanyInfo(ctx, {
+      name: E2E_USER.companyName,
+      country: "CM",
+      address: "Akwa, Douala",
+      taxId: "M021234567890Z",
+    });
+    await updatePayrollSettings(ctx, {
+      payrollFrequency: "MONTHLY",
+      standardHoursPerWeek: 40,
+      overtimeMultiplier: 1.25,
+      taxRatePercent: 4.5,
+    });
+    await createInitialDepartments(ctx, ["Operations", "Finance", "Engineering"]);
+    await db.company.update({ where: { id: companyId }, data: { setupStep: 5 } });
+    await completeSetup({
+      ...ctx,
+      company: await db.company.findUniqueOrThrow({ where: { id: companyId } }),
+    });
+  }
+
+  // Demo employees for manual E2E — idempotent (skipped once any exist).
+  const employeeCount = await db.employee.count({ where: { companyId } });
+  if (employeeCount > 0) {
+    console.log(`Fixture ready: ${E2E_USER.email} / ${E2E_USER.password} (${E2E_USER.companyName})`);
     await disposeDb();
     return;
   }
 
-  await updateCompanyInfo(ctx, {
-    name: E2E_USER.companyName,
-    country: "CM",
-    address: "Akwa, Douala",
-    taxId: "M021234567890Z",
+  const departments = await db.department.findMany({
+    where: { companyId, status: "ACTIVE" },
+    orderBy: { name: "asc" },
   });
-  await updatePayrollSettings(ctx, {
-    payrollFrequency: "MONTHLY",
-    standardHoursPerWeek: 40,
-    overtimeMultiplier: 1.25,
-    taxRatePercent: 4.5,
+  const byName = new Map(departments.map((d) => [d.name, d.id]));
+
+  async function ensurePosition(departmentName: string, title: string): Promise<string> {
+    const departmentId = byName.get(departmentName);
+    if (!departmentId) throw new Error(`Fixture department missing: ${departmentName}`);
+    const existing = await db.position.findFirst({
+      where: { companyId, departmentId, title },
+      select: { id: true },
+    });
+    if (existing) return existing.id;
+    const created = await createPosition(ctx, departmentId, { title });
+    return created.id;
+  }
+
+  const positions = {
+    opsManager: await ensurePosition("Operations", "Operations Manager"),
+    fieldOfficer: await ensurePosition("Operations", "Field Officer"),
+    accountant: await ensurePosition("Finance", "Senior Accountant"),
+    engineer: await ensurePosition("Engineering", "Software Engineer"),
+  };
+
+  const amina = await createEmployee(ctx, {
+    firstName: "Amina",
+    lastName: "Ngo Bell",
+    email: "amina.ngobell@example.cm",
+    phone: "+237 690 11 22 33",
+    positionId: positions.opsManager,
+    dateHired: "2024-02-01",
+    employmentType: "FULL_TIME",
+    basicSalary: "850000",
   });
-  await createInitialDepartments(ctx, ["Operations", "Finance", "Engineering"]);
-  await db.company.update({ where: { id: companyId }, data: { setupStep: 5 } });
-  await completeSetup({
-    ...ctx,
-    company: await db.company.findUniqueOrThrow({ where: { id: companyId } }),
+  await updatePaymentDetails(ctx, amina.id, {
+    paymentMethod: "BANK",
+    bankName: "Afriland First Bank",
+    bankAccountNumber: "1002 3345 6789 4521",
   });
 
+  await createEmployee(ctx, {
+    firstName: "Boris",
+    lastName: "Etoundi",
+    email: "boris.etoundi@example.cm",
+    positionId: positions.engineer,
+    dateHired: "2025-05-12",
+    employmentType: "FULL_TIME",
+    basicSalary: "1200000",
+  });
+  const boris = await db.employee.findFirstOrThrow({
+    where: { companyId, firstName: "Boris", lastName: "Etoundi" },
+  });
+  await updatePaymentDetails(ctx, boris.id, {
+    paymentMethod: "MOBILE_MONEY",
+    mobileMoneyProvider: "MTN",
+    mobileMoneyNumber: "+237680334455",
+  });
+
+  const carine = await createEmployee(ctx, {
+    firstName: "Carine",
+    lastName: "Fotso",
+    positionId: positions.accountant,
+    dateHired: "2026-06-15",
+    employmentType: "CONTRACT",
+    basicSalary: "620000",
+  });
+  await setEmployeeStatus(ctx, carine.id, "INACTIVE");
+
+  await createEmployee(ctx, {
+    firstName: "Dylan",
+    lastName: "Mbappe",
+    positionId: positions.fieldOfficer,
+    dateHired: "2026-07-01",
+    employmentType: "INTERN",
+    basicSalary: "150000",
+  });
+
+  console.log("Demo employees created (PB-0001..PB-0004: bank, momo, inactive, missing payment).");
   console.log(`Fixture ready: ${E2E_USER.email} / ${E2E_USER.password} (${E2E_USER.companyName})`);
   await disposeDb();
 }

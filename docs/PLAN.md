@@ -1,6 +1,6 @@
 # PayFlow — Master Engineering Plan
 
-Status: **Approved** — building. Phase 0 ✅ · Phase 1 ✅ · Phase 2 ✅ · Phase 3 ✅ · Phase 4 ✅ (2026-08-07).
+Status: **Approved** — building. Phase 0 ✅ · Phase 1 ✅ · Phase 2 ✅ · Phase 3 ✅ · Phase 4 ✅ · Phase 5 ✅ (2026-08-07).
 Date: 2026-08-07 · Branch: `arena/019fdb7f-payflow`
 
 Companion docs: `DESIGN.md` (Dribbble-derived visual research),
@@ -626,3 +626,7 @@ All validated at boot by `src/lib/env.ts` (Zod) — the app fails fast with a re
 18. **Stack additions beyond the brief's list** (all boring, all necessary): bcryptjs, big.js, archiver, pino, sonner, react-hook-form, date-fns (durations), `@tanstack/react-table` for the heavy grids.
 19. **Verification reality in this sandbox** — docker isn’t available here, so I’ll install/run Postgres + Redis natively in the sandbox to verify phases; the docker-compose file remains the path for local machines.
 20. **Demo data realism** — 35 employees (34 active + 1 terminated), Cameroonian names/phones, MTN/Orange Money + local banks, salaries 85 000–950 000 XAF, 2 historical APPROVED+PAID periods with payslips/payments, 1 live DRAFT period with adjustments.
+21. **Employee codes** — `PB-0001` style, per-company sequence, never reused (terminated employees keep their code for payroll history). Allocated server-side with retry on the `(companyId, employeeCode)` unique index (no client-supplied codes, no P2002 leaks).
+22. **Sensitive-employment gating (P5)** — salary + payment *plaintext* are gated behind `employees.view_sensitive` (Company Admin, Accountant); HR Managers manage records without seeing compensation. Payment secrets are AES-256-GCM encrypted at rest (`v1.iv.tag.ct`), returned **masked** (`•••• 4521`) by default; reveal is an explicit `?reveal=1` server render for sensitive roles only. Audit metadata carries last-4 only, never plaintext or ciphertext.
+23. **Payment-edit semantics** — empty form fields mean "keep the stored secret" (merged server-side, then resulting-state completeness validated per method); switching methods clears the other method's encrypted columns so stale secrets never linger. CASH wipes everything.
+24. **Termination rules** — one-way (`TERMINATED` can't be reactivated; rehire = new record), date must be ≥ hire date and never future-dated (payroll consumes historical truth; scheduled departures stay ACTIVE until the day). ACTIVE ⇄ INACTIVE is free-form. Departments are derived from the chosen position (single select; the two can never disagree).

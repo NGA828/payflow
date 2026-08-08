@@ -33,3 +33,4 @@ next-env.d.ts
 
 # design-scratch
 /image-search/
+__pycache__/
