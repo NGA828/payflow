@@ -3,6 +3,7 @@ import { AppError } from "@/server/errors";
 import { audit } from "@/server/security/audit";
 import { assertTransition } from "@/server/payroll/state-machine";
 import { ensurePayments } from "@/server/services/payment.service";
+import { notifyPayslipsAvailable } from "@/server/services/payslip.service";
 import type { CompanyContext } from "@/server/tenant/context";
 
 /**
@@ -124,6 +125,8 @@ export async function approvePeriod(
     },
     ...meta,
   });
+  // Payslip-availability fan-out (in-app + email). Never blocks approval.
+  await notifyPayslipsAvailable(ctx.company.id, period.id);
   return { name: period.name, employees: flipped.count };
 }
 

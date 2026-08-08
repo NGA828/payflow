@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
     "pglite-prisma-adapter",
     "pg",
   ],
+  // The payslip PDF embeds Inter woff files resolved by absolute path at
+  // runtime (see src/server/payslips/fonts.ts) — standalone output must
+  // keep them next to node_modules.
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/@fontsource/inter/files/*.woff"],
+  },
   async headers() {
     return [
       {

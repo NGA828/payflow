@@ -12,6 +12,8 @@
  * amounts are whole-XAF integers.
  */
 
+import { slugifyFileStem } from "@/server/files/slug";
+
 export interface PaymentCsvRow {
   employeeCode: string;
   fullName: string;
@@ -53,11 +55,7 @@ export function paymentInstructionReference(periodStart: Date, employeeCode: str
 }
 
 export function paymentsCsvFilename(periodName: string): string {
-  const slug = periodName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-  return `payflow-payments-${slug}.csv`;
+  return `payflow-payments-${slugifyFileStem(periodName)}.csv`;
 }
 
 /** ISO date for the pay_date column (period.payDate → 2026-09-05). */

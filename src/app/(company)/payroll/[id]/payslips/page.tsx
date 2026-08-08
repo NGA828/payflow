@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDownRight, ArrowUpRight, FileText, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Archive, Download, FileText, Wallet } from "lucide-react";
 import Big from "big.js";
 import { AppError } from "@/server/errors";
 import { PERMISSIONS, hasPermission } from "@/server/rbac/permissions";
@@ -13,6 +13,7 @@ import {
 } from "@/server/services/payroll-processing.service";
 import { roundWholeXaf } from "@/server/payroll/money";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -107,6 +108,7 @@ export default async function PayslipsPage({
   }
   const canProcess = hasPermission(ctx.membership.role, PERMISSIONS.PAYROLL_PROCESS);
   const canViewPayments = hasPermission(ctx.membership.role, PERMISSIONS.PAYMENTS_VIEW);
+  const canDownload = hasPermission(ctx.membership.role, PERMISSIONS.PAYSLIPS_DOWNLOAD);
 
   const { id } = await params;
   const period = await getPeriodDetail(ctx.company.id, id, false);
@@ -115,6 +117,7 @@ export default async function PayslipsPage({
   const rows = await listPayslipsForPeriod(ctx.company.id, id);
   const totals = totalsOf(rows);
   const canRun = canProcess && (period.status === "DRAFT" || period.status === "READY");
+  const canZip = canDownload && rows.length > 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -126,8 +129,20 @@ export default async function PayslipsPage({
         withPayments={canViewPayments}
         active="payslips"
         actions={
-          canRun ? (
-            <ProcessPayrollButton periodId={period.id} reprocess={period.status === "READY"} />
+          canRun || canZip ? (
+            <div className="flex items-center gap-2">
+              {canZip && (
+                <Link
+                  href={`/payroll/${period.id}/payslips/export`}
+                  className={buttonVariants({ variant: "secondary" })}
+                >
+                  <Archive className="h-4 w-4" /> Download ZIP
+                </Link>
+              )}
+              {canRun && (
+                <ProcessPayrollButton periodId={period.id} reprocess={period.status === "READY"} />
+              )}
+            </div>
           ) : undefined
         }
       />
@@ -184,7 +199,8 @@ export default async function PayslipsPage({
             <div className="border-b border-border bg-canvas/70 px-5 py-3">
               <h2 className="text-[13px] font-semibold text-ink">Payslips ({rows.length})</h2>
               <p className="text-[12px] text-muted">
-                Individual payslip pages and PDF downloads arrive with the sharing phase.
+                Branded PDFs rendered from the last payroll run — download individually or as one
+                ZIP.
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -199,6 +215,11 @@ export default async function PayslipsPage({
                     <th className="px-4 py-2.5 text-right">Deductions</th>
                     <th className="px-4 py-2.5 text-right">Net pay</th>
                     <th className="py-2.5 pr-5 pl-4">Status</th>
+                    {canDownload && (
+                      <th className="py-2.5 pr-5 pl-4 text-right">
+                        <span className="sr-only">Download PDF</span>
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -241,6 +262,18 @@ export default async function PayslipsPage({
                             {badge.label}
                           </Badge>
                         </td>
+                        {canDownload && (
+                          <td className="py-3 pr-5 pl-4 text-right">
+                            <Link
+                              href={`/payroll/${period.id}/payslips/${row.id}/download`}
+                              className={buttonVariants({ variant: "ghost", size: "sm" })}
+                              title={`Download ${row.payslipNumber}`}
+                              aria-label={`Download payslip ${row.payslipNumber} for ${row.fullName}`}
+                            >
+                              <Download className="h-4 w-4" /> PDF
+                            </Link>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

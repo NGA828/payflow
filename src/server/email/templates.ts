@@ -59,3 +59,20 @@ export function invitationEmail(params: {
     text: `${params.inviterName} invited you to join ${params.companyName} on PayFlow as ${params.roleLabel}.\n\nAccept: ${params.url}\n\nExpires in 7 days.`,
   };
 }
+
+export function payslipAvailableEmail(params: {
+  employeeName: string;
+  periodName: string;
+  payDateLabel: string;
+  url: string;
+}) {
+  const body = `<p>Hi ${params.employeeName},</p>
+    <p>Your payslip for <strong>${params.periodName}</strong> was approved and is now available. Pay date: <strong>${params.payDateLabel}</strong>.</p>
+    ${button(params.url, "View my payslips")}
+    <p>If the button doesn't work, sign in to your PayFlow employee portal and open <em>My payslips</em>.</p>`;
+  return {
+    subject: `Your ${params.periodName} payslip is ready`,
+    html: layout(`Payslip available — ${params.periodName}`, body),
+    text: `Hi ${params.employeeName},\n\nYour ${params.periodName} payslip is now available (pay date: ${params.payDateLabel}).\n\nView it: ${params.url}`,
+  };
+}
