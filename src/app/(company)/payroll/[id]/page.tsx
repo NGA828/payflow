@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import {
   CalendarDays,
   Check,
-  ChevronLeft,
   CircleSlash,
   Landmark,
   ShieldCheck,
@@ -22,9 +21,9 @@ import { STATUS_DISPLAY, STATUS_ORDER } from "@/server/payroll/state-machine";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatMoney } from "@/lib/format";
-import { statusBadgeVariant, statusLabel } from "@/lib/payroll-ui";
 import { cn } from "@/lib/utils";
 import { DeletePeriodButton } from "./client";
+import { PeriodPageHeader } from "./subnav";
 
 export const metadata: Metadata = { title: "Payroll period" };
 export const dynamic = "force-dynamic";
@@ -98,13 +97,6 @@ export default async function PayrollPeriodPage({
 
   return (
     <div className="flex flex-col gap-5">
-      <Link
-        href="/payroll"
-        className="inline-flex w-fit items-center gap-1.5 text-[13px] font-medium text-muted hover:text-ink"
-      >
-        <ChevronLeft className="h-4 w-4" /> Back to payroll
-      </Link>
-
       {sp.created === "1" && (
         <div className="flex items-center gap-2.5 rounded-lg border border-success/25 bg-success-tint px-4 py-3 text-[13px] font-medium text-success">
           <ShieldCheck className="h-4 w-4 shrink-0" />
@@ -112,23 +104,18 @@ export default async function PayrollPeriodPage({
         </div>
       )}
 
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-xl font-bold text-ink">{period.name}</h1>
-            <Badge variant={statusBadgeVariant(period.status)} dot>
-              {statusLabel(period.status)}
-            </Badge>
-          </div>
-          <p className="tnum mt-1 text-[13px] text-muted">
-            {formatDate(period.startDate)} – {formatDate(period.endDate)} · pay date{" "}
-            {formatDate(period.payDate)}
-          </p>
-        </div>
-        {canManagePeriods && period.status === "DRAFT" && (
-          <DeletePeriodButton periodId={period.id} periodName={period.name} />
-        )}
-      </div>
+      <PeriodPageHeader
+        periodId={period.id}
+        name={period.name}
+        status={period.status}
+        dateRange={`${formatDate(period.startDate)} – ${formatDate(period.endDate)} · pay date ${formatDate(period.payDate)}`}
+        active="overview"
+        actions={
+          canManagePeriods && period.status === "DRAFT" ? (
+            <DeletePeriodButton periodId={period.id} periodName={period.name} />
+          ) : undefined
+        }
+      />
 
       {/* Status stepper */}
       <Card>

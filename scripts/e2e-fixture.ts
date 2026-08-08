@@ -201,6 +201,63 @@ async function main() {
     console.log(`Demo accountant created: ${E2E_ACCOUNTANT.email} / ${E2E_ACCOUNTANT.password}`);
   }
 
+  // Demo payroll period + adjustments (idempotent) — input for payroll E2E.
+  const { createPeriod } = await import("@/server/services/payroll-period.service");
+  const { createAdjustment } = await import("@/server/services/adjustment.service");
+
+  let period = await db.payrollPeriod.findFirst({
+    where: { companyId, name: "August 2026" },
+  });
+  if (!period) {
+    const created = await createPeriod(ctx, {
+      startDate: "2026-08-01",
+      endDate: "2026-08-31",
+      payDate: "2026-09-05",
+      notes: undefined,
+    });
+    period = await db.payrollPeriod.findUniqueOrThrow({ where: { id: created.id } });
+    console.log("Demo period created: August 2026 (DRAFT)");
+  }
+
+  const adjustmentCount = await db.payrollAdjustment.count({
+    where: { companyId, payrollPeriodId: period.id },
+  });
+  if (adjustmentCount === 0) {
+    const byCode = new Map(
+      (
+        await db.employee.findMany({
+          where: { companyId },
+          select: { id: true, employeeCode: true },
+        })
+      ).map((employee) => [employee.employeeCode, employee.id]),
+    );
+    const aminaId = byCode.get("PB-0001");
+    const borisId = byCode.get("PB-0002");
+    const dylanId = byCode.get("PB-0004");
+    if (aminaId && borisId && dylanId && period.status === "DRAFT") {
+      await createAdjustment(ctx, period.id, {
+        employeeId: aminaId,
+        type: "BONUS",
+        amount: "50000",
+        note: "Retention bonus",
+      });
+      await createAdjustment(ctx, period.id, {
+        employeeId: borisId,
+        type: "OVERTIME",
+        amount: "64904",
+        hours: "7.5",
+        note: "Release weekend",
+      });
+      await createAdjustment(ctx, period.id, {
+        employeeId: dylanId,
+        type: "ADVANCE",
+        amount: "20000",
+        note: "Salary advance",
+      });
+      console.log("Demo adjustments created (bonus, overtime, advance).");
+    }
+  }
+
   console.log(`Fixture ready: ${E2E_USER.email} / ${E2E_USER.password} (${E2E_USER.companyName})`);
   await disposeDb();
 }

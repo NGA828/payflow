@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // The Arena/e2b live preview proxies the dev server under per-port
+  // subdomains; allow cross-origin dev requests from those hosts.
+  allowedDevOrigins: ["*.e2b.app"],
   serverExternalPackages: [
     "@prisma/client",
     "@prisma/adapter-pg",
