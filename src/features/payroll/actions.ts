@@ -13,6 +13,12 @@ import { PERMISSIONS } from "@/server/rbac/permissions";
 import { createPeriod, deletePeriod } from "@/server/services/payroll-period.service";
 import { processPayroll } from "@/server/services/payroll-processing.service";
 import {
+  approvePeriod,
+  rejectPeriod,
+  submitPeriod,
+  unlockPeriod,
+} from "@/server/services/payroll-approval.service";
+import {
   createAdjustment,
   deleteAdjustment,
   updateAdjustment,
@@ -154,4 +160,87 @@ export async function processPayrollAction(
   } catch (error) {
     return errorState(error);
   }
+}
+
+// ── Review & approval (/payroll/[id]/review) ───────────────────────
+
+function revalidatePeriodViews(payrollPeriodId: string): void {
+  revalidatePath(`/payroll/${payrollPeriodId}`);
+  revalidatePath(`/payroll/${payrollPeriodId}/adjustments`);
+  revalidatePath(`/payroll/${payrollPeriodId}/payslips`);
+  revalidatePath(`/payroll/${payrollPeriodId}/review`);
+  revalidatePath("/payroll");
+}
+
+export async function submitPeriodAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const payrollPeriodId = String(formData.get("payrollPeriodId") ?? "");
+  let name: string;
+  try {
+    const ctx = await requireCompanyPermission(PERMISSIONS.PAYROLL_SUBMIT);
+    assertCompanyWritable(ctx);
+    ({ name } = await submitPeriod(ctx, payrollPeriodId, await requestMeta()));
+  } catch (error) {
+    return errorState(error);
+  }
+  revalidatePeriodViews(payrollPeriodId);
+  return { status: "success", message: `${name} submitted for approval.` };
+}
+
+export async function approvePeriodAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const payrollPeriodId = String(formData.get("payrollPeriodId") ?? "");
+  let approved: { name: string; employees: number };
+  try {
+    const ctx = await requireCompanyPermission(PERMISSIONS.PAYROLL_APPROVE);
+    assertCompanyWritable(ctx);
+    approved = await approvePeriod(ctx, payrollPeriodId, await requestMeta());
+  } catch (error) {
+    return errorState(error);
+  }
+  revalidatePeriodViews(payrollPeriodId);
+  return {
+    status: "success",
+    message: `${approved.name} approved — ${approved.employees} payslip${approved.employees === 1 ? "" : "s"} locked in.`,
+  };
+}
+
+export async function rejectPeriodAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const payrollPeriodId = String(formData.get("payrollPeriodId") ?? "");
+  const reason = String(formData.get("reason") ?? "");
+  let name: string;
+  try {
+    const ctx = await requireCompanyPermission(PERMISSIONS.PAYROLL_APPROVE);
+    assertCompanyWritable(ctx);
+    ({ name } = await rejectPeriod(ctx, payrollPeriodId, reason, await requestMeta()));
+  } catch (error) {
+    return errorState(error);
+  }
+  revalidatePeriodViews(payrollPeriodId);
+  return { status: "success", message: `${name} sent back to review.` };
+}
+
+export async function unlockPeriodAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const payrollPeriodId = String(formData.get("payrollPeriodId") ?? "");
+  const reason = String(formData.get("reason") ?? "");
+  let name: string;
+  try {
+    const ctx = await requireCompanyPermission(PERMISSIONS.PAYROLL_UNLOCK);
+    assertCompanyWritable(ctx);
+    ({ name } = await unlockPeriod(ctx, payrollPeriodId, reason, await requestMeta()));
+  } catch (error) {
+    return errorState(error);
+  }
+  revalidatePeriodViews(payrollPeriodId);
+  return { status: "success", message: `${name} unlocked — payslips can be reprocessed.` };
 }

@@ -108,6 +108,9 @@ def main():
 
     request = urllib.request.Request(url, data=body_bytes, method="POST")
     request.add_header("Content-Type", f"multipart/form-data; boundary={boundary}")
+    # Next validates Origin on server actions when present/stripped — send it.
+    parsed_url = urllib.parse.urlparse(url)
+    request.add_header("Origin", f"{parsed_url.scheme}://{parsed_url.netloc}")
     if cookies:
         request.add_header("Cookie", cookies)
 

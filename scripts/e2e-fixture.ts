@@ -61,7 +61,7 @@ async function main() {
 
   const company = await db.company.findUniqueOrThrow({ where: { id: companyId } });
   const membership = await db.membership.findFirstOrThrow({ where: { companyId } });
-  const ctx: CompanyContext = {
+  let ctx: CompanyContext = {
     user: {
       id: userId,
       email: E2E_USER.email,
@@ -96,6 +96,13 @@ async function main() {
       company: await db.company.findUniqueOrThrow({ where: { id: companyId } }),
     });
   }
+
+  // Settings were just written — refresh the embedded company row so payroll
+  // processing below uses the REAL tax rate / overtime multiplier.
+  ctx = {
+    ...ctx,
+    company: await db.company.findUniqueOrThrow({ where: { id: companyId } }),
+  };
 
   // Demo employees for manual E2E — idempotent (skipped once any exist).
   const employeeCount = await db.employee.count({ where: { companyId } });
@@ -204,6 +211,36 @@ async function main() {
   // Demo payroll period + adjustments (idempotent) — input for payroll E2E.
   const { createPeriod } = await import("@/server/services/payroll-period.service");
   const { createAdjustment } = await import("@/server/services/adjustment.service");
+
+  // July 2026: a finalized (APPROVED) history period so the review cockpit
+  // has trend data, a previous-net baseline and seeded net-delta outliers.
+  // Only seeded before any prep period exists (single-prep guard).
+  const [julyExists, prepExists] = await Promise.all([
+    db.payrollPeriod.findFirst({
+      where: { companyId, name: "July 2026" },
+      select: { id: true },
+    }),
+    db.payrollPeriod.findFirst({
+      where: { companyId, status: { in: ["DRAFT", "IN_PROGRESS", "READY"] } },
+      select: { id: true },
+    }),
+  ]);
+  if (!julyExists && !prepExists) {
+    const { processPayroll } = await import("@/server/services/payroll-processing.service");
+    const { submitPeriod, approvePeriod } = await import(
+      "@/server/services/payroll-approval.service"
+    );
+    const july = await createPeriod(ctx, {
+      startDate: "2026-07-01",
+      endDate: "2026-07-31",
+      payDate: "2026-08-05",
+      notes: undefined,
+    });
+    await processPayroll(ctx, july.id);
+    await submitPeriod(ctx, july.id);
+    await approvePeriod(ctx, july.id);
+    console.log("Demo history period created: July 2026 (APPROVED)");
+  }
 
   let period = await db.payrollPeriod.findFirst({
     where: { companyId, name: "August 2026" },

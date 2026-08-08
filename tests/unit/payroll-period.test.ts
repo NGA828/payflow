@@ -39,6 +39,7 @@ describe("period state machine", () => {
       ["READY", "SUBMITTED"],
       ["READY", "IN_PROGRESS"], // idempotent re-process
       ["SUBMITTED", "APPROVED"],
+      ["SUBMITTED", "READY"], // reject (note required)
       ["APPROVED", "READY"], // unlock
       ["APPROVED", "PAID"],
       ["PAID", "LOCKED"],
@@ -59,6 +60,7 @@ describe("period state machine", () => {
     expect(transitionPermission("READY", "IN_PROGRESS")).toBe("payroll.process");
     expect(transitionPermission("READY", "SUBMITTED")).toBe("payroll.submit");
     expect(transitionPermission("SUBMITTED", "APPROVED")).toBe("payroll.approve");
+    expect(transitionPermission("SUBMITTED", "READY")).toBe("payroll.approve"); // reject
     expect(transitionPermission("APPROVED", "READY")).toBe("payroll.unlock");
     expect(transitionPermission("APPROVED", "PAID")).toBe("payments.manage");
     expect(transitionPermission("PAID", "LOCKED")).toBe("payroll.approve");

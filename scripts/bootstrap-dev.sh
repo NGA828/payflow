@@ -32,8 +32,14 @@ fi
 npx tsx scripts/bootstrap-env.ts
 
 # 4. Embedded database: apply pending migrations (per-migration markers),
-#    then idempotent base seed + e2e fixture.
+#    then idempotent base seed + e2e fixture. A dir that fails to open
+#    (PGlite abort after a two-process open, interrupted write) is moved
+#    aside and rebuilt from scratch — the dev DB is fully disposable.
 DEV_DB="${PGLITE_DATA:-$HOME/opt/pglite-data}"
+if [ -d "$DEV_DB" ] && ! npx tsx scripts/probe-pglite.ts "$DEV_DB" >/dev/null 2>&1; then
+  mv "$DEV_DB" "${DEV_DB}.corrupt-$(date +%s)" || rm -rf "$DEV_DB"
+  echo "⚠ PGlite data dir was unopenable — moved aside, rebuilding from scratch"
+fi
 for d in src/prisma/migrations/*/; do
   name="$(basename "$d")"
   [ -f "$DEV_DB/.applied-$name" ] && continue

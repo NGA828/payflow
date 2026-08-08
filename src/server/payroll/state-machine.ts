@@ -7,7 +7,10 @@ import { PERMISSIONS } from "@/server/rbac/permissions";
  * Payroll period lifecycle — the single authority on allowed transitions:
  *
  *   DRAFT → IN_PROGRESS → READY → SUBMITTED → APPROVED → PAID → LOCKED
- *                                 ↑________________|  (unlock, reason required)
+ *                          ↑___________|           |
+ *                          (reprocess)  ↓ (reject, note required)
+ *                          READY ←──────┘
+ *                                 ↑________ APPROVED (unlock, reason required)
  *
  * Services enforce the matrix on every mutation; UI only reflects it.
  */
@@ -18,7 +21,7 @@ export const PERIOD_TRANSITIONS: Readonly<
   DRAFT: ["IN_PROGRESS"],
   IN_PROGRESS: ["READY", "DRAFT"], // DRAFT here = system rollback after a failed run
   READY: ["SUBMITTED", "IN_PROGRESS"], // IN_PROGRESS here = idempotent re-process
-  SUBMITTED: ["APPROVED"],
+  SUBMITTED: ["APPROVED", "READY"], // READY here = reject back to review (note required)
   APPROVED: ["READY", "PAID"], // READY here = the guarded unlock path
   PAID: ["LOCKED"],
   LOCKED: [],
@@ -36,6 +39,7 @@ export const TRANSITION_PERMISSION: Readonly<
   "READY->IN_PROGRESS": PERMISSIONS.PAYROLL_PROCESS,
   "READY->SUBMITTED": PERMISSIONS.PAYROLL_SUBMIT,
   "SUBMITTED->APPROVED": PERMISSIONS.PAYROLL_APPROVE,
+  "SUBMITTED->READY": PERMISSIONS.PAYROLL_APPROVE, // reject (note required)
   "APPROVED->READY": PERMISSIONS.PAYROLL_UNLOCK,
   "APPROVED->PAID": PERMISSIONS.PAYMENTS_MANAGE,
   "PAID->LOCKED": PERMISSIONS.PAYROLL_APPROVE,
