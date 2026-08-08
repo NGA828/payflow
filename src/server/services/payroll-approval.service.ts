@@ -2,6 +2,7 @@ import { getDb } from "@/lib/db";
 import { AppError } from "@/server/errors";
 import { audit } from "@/server/security/audit";
 import { assertTransition } from "@/server/payroll/state-machine";
+import { ensurePayments } from "@/server/services/payment.service";
 import type { CompanyContext } from "@/server/tenant/context";
 
 /**
@@ -108,6 +109,7 @@ export async function approvePeriod(
     where: { id: period.id },
     data: { status: "APPROVED", approvedAt: new Date(), approvedById: ctx.user.id },
   });
+  const paymentsCreated = await ensurePayments(ctx.company.id, period.id);
   await audit({
     companyId: ctx.company.id,
     userId: ctx.user.id,
@@ -117,6 +119,7 @@ export async function approvePeriod(
     metadata: {
       period: period.name,
       payslipsApproved: flipped.count,
+      paymentsCreated,
       totalNet: period.totalNet?.toString() ?? null,
     },
     ...meta,
@@ -176,6 +179,11 @@ export async function unlockPeriod(
   await db.payslip.updateMany({
     where: { companyId: ctx.company.id, payrollPeriodId: period.id, status: "APPROVED" },
     data: { status: "DRAFT" },
+  });
+  // Re-approval rematerializes payments from fresh payslips (decision #36);
+  // the successful-payments guard above guarantees no SUCCESSFUL row is lost.
+  await db.payment.deleteMany({
+    where: { companyId: ctx.company.id, payrollPeriodId: period.id },
   });
   await db.payrollPeriod.update({
     where: { id: period.id },

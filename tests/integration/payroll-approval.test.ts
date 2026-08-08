@@ -299,17 +299,10 @@ describe.skipIf(!RUN)("payroll review & approval (integration)", () => {
 
   it("refuses to unlock once a payment succeeded (decision #9)", async () => {
     await submitPeriod(ctx, augustId);
-    await approvePeriod(ctx, augustId);
-    await prisma.payment.create({
-      data: {
-        companyId: ctx.company.id,
-        payrollPeriodId: augustId,
-        employeeId: aminaId,
-        method: "BANK",
-        amount: "830850",
-        status: "SUCCESSFUL",
-        paidAt: new Date(),
-      },
+    await approvePeriod(ctx, augustId); // materializes PENDING payments (P10)
+    await prisma.payment.updateMany({
+      where: { payrollPeriodId: augustId, employeeId: aminaId },
+      data: { status: "SUCCESSFUL", paidAt: new Date() },
     });
     await expect(unlockPeriod(ctx, augustId, "Trying anyway")).rejects.toMatchObject({
       code: "CONFLICT",

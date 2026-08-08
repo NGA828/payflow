@@ -85,6 +85,7 @@ export default async function AdjustmentsPage({
   }
   const canAdjust =
     hasPermission(ctx.membership.role, PERMISSIONS.PAYROLL_ADJUST);
+  const canViewPayments = hasPermission(ctx.membership.role, PERMISSIONS.PAYMENTS_VIEW);
 
   const { id } = await params;
   const sp = await searchParams;
@@ -114,6 +115,7 @@ export default async function AdjustmentsPage({
         name={period.name}
         status={period.status}
         dateRange={`${formatDate(period.startDate)} – ${formatDate(period.endDate)} · pay date ${formatDate(period.payDate)}`}
+        withPayments={canViewPayments}
         active="adjustments"
       />
 

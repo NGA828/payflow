@@ -87,6 +87,7 @@ export default async function PayrollPeriodPage({
   const canManagePeriods = hasPermission(ctx.membership.role, PERMISSIONS.PAYROLL_PERIODS_MANAGE);
   const canSeeSensitive = hasPermission(ctx.membership.role, PERMISSIONS.EMPLOYEES_VIEW_SENSITIVE);
   const canProcess = hasPermission(ctx.membership.role, PERMISSIONS.PAYROLL_PROCESS);
+  const canViewPayments = hasPermission(ctx.membership.role, PERMISSIONS.PAYMENTS_VIEW);
 
   const { id } = await params;
   const sp = await searchParams;
@@ -110,6 +111,7 @@ export default async function PayrollPeriodPage({
         name={period.name}
         status={period.status}
         dateRange={`${formatDate(period.startDate)} – ${formatDate(period.endDate)} · pay date ${formatDate(period.payDate)}`}
+        withPayments={canViewPayments}
         active="overview"
         actions={
           <div className="flex items-center gap-2">

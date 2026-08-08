@@ -45,6 +45,8 @@ export type AuditAction =
   | "payroll.approved"
   | "payroll.rejected"
   | "payroll.unlocked"
+  | "payroll.marked_paid"
+  | "payroll.locked"
   | "payment.status_changed"
   | "payment.exported"
   | "payslip.generated"

@@ -109,6 +109,7 @@ export default async function ReviewPage({
   const canSubmit = hasPermission(role, PERMISSIONS.PAYROLL_SUBMIT);
   const canApprove = hasPermission(role, PERMISSIONS.PAYROLL_APPROVE);
   const canUnlock = hasPermission(role, PERMISSIONS.PAYROLL_UNLOCK);
+  const canViewPayments = hasPermission(role, PERMISSIONS.PAYMENTS_VIEW);
 
   const { id } = await params;
   const period = await getPeriodDetail(ctx.company.id, id, false);
@@ -142,6 +143,7 @@ export default async function ReviewPage({
         name={period.name}
         status={period.status}
         dateRange={`${formatDate(period.startDate)} – ${formatDate(period.endDate)} · pay date ${formatDate(period.payDate)}`}
+        withPayments={canViewPayments}
         active="review"
         actions={headerActions}
       />

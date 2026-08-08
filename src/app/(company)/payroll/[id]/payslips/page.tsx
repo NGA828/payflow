@@ -106,6 +106,7 @@ export default async function PayslipsPage({
     throw error;
   }
   const canProcess = hasPermission(ctx.membership.role, PERMISSIONS.PAYROLL_PROCESS);
+  const canViewPayments = hasPermission(ctx.membership.role, PERMISSIONS.PAYMENTS_VIEW);
 
   const { id } = await params;
   const period = await getPeriodDetail(ctx.company.id, id, false);
@@ -122,6 +123,7 @@ export default async function PayslipsPage({
         name={period.name}
         status={period.status}
         dateRange={`${formatDate(period.startDate)} – ${formatDate(period.endDate)} · pay date ${formatDate(period.payDate)}`}
+        withPayments={canViewPayments}
         active="payslips"
         actions={
           canRun ? (

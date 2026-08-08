@@ -18,6 +18,7 @@ import {
   submitPeriod,
   unlockPeriod,
 } from "@/server/services/payroll-approval.service";
+import { lockPeriod, updatePaymentStatus } from "@/server/services/payment.service";
 import {
   createAdjustment,
   deleteAdjustment,
@@ -243,4 +244,61 @@ export async function unlockPeriodAction(
   }
   revalidatePeriodViews(payrollPeriodId);
   return { status: "success", message: `${name} unlocked — payslips can be reprocessed.` };
+}
+
+// ── Payments (/payroll/[id]/payments) ──────────────────────────────
+
+export async function markPaymentStatusAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const paymentId = String(formData.get("paymentId") ?? "");
+  const payrollPeriodId = String(formData.get("payrollPeriodId") ?? "");
+  const outcome = String(formData.get("outcome") ?? "");
+  const reference = String(formData.get("reference") ?? "");
+  const failureReason = String(formData.get("failureReason") ?? "");
+  if (outcome !== "SUCCESSFUL" && outcome !== "FAILED") {
+    return { status: "error", message: "Unknown payment outcome." };
+  }
+  let result;
+  try {
+    const ctx = await requireCompanyPermission(PERMISSIONS.PAYMENTS_MANAGE);
+    assertCompanyWritable(ctx);
+    result = await updatePaymentStatus(
+      ctx,
+      paymentId,
+      { outcome, reference, failureReason },
+      await requestMeta(),
+    );
+  } catch (error) {
+    return errorState(error);
+  }
+  revalidatePath(`/payroll/${payrollPeriodId}`);
+  revalidatePath(`/payroll/${payrollPeriodId}/review`);
+  revalidatePath(`/payroll/${payrollPeriodId}/payments`);
+  revalidatePath("/payroll");
+  const done =
+    result.outcome === "SUCCESSFUL"
+      ? `${result.employeeCode} marked paid${String(formData.get("reference") ?? "").trim() ? " (reference saved)" : ""}.`
+      : `${result.employeeCode} marked failed — retry when it's sorted.`;
+  const periodMsg = result.periodNowPaid ? " Every payment is in — the period is now PAID." : "";
+  return { status: "success", message: done + periodMsg };
+}
+
+export async function lockPeriodAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const payrollPeriodId = String(formData.get("payrollPeriodId") ?? "");
+  let name: string;
+  try {
+    const ctx = await requireCompanyPermission(PERMISSIONS.PAYROLL_APPROVE);
+    assertCompanyWritable(ctx);
+    ({ name } = await lockPeriod(ctx, payrollPeriodId, await requestMeta()));
+  } catch (error) {
+    return errorState(error);
+  }
+  revalidatePeriodViews(payrollPeriodId);
+  revalidatePath(`/payroll/${payrollPeriodId}/payments`);
+  return { status: "success", message: `${name} locked — read-only forever.` };
 }

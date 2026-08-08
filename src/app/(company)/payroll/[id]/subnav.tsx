@@ -5,6 +5,8 @@ import type { PayrollPeriodStatus } from "@prisma/client";
 import { statusBadgeVariant, statusLabel } from "@/lib/payroll-ui";
 import { cn } from "@/lib/utils";
 
+type PeriodTabId = "overview" | "adjustments" | "payslips" | "review" | "payments";
+
 /** Shared header for period-scoped pages (overview, adjustments, payslips…). */
 export function PeriodPageHeader({
   periodId,
@@ -13,20 +15,26 @@ export function PeriodPageHeader({
   dateRange,
   active,
   actions,
+  withPayments = false,
 }: {
   periodId: string;
   name: string;
   status: PayrollPeriodStatus;
   dateRange: string;
-  active: "overview" | "adjustments" | "payslips" | "review";
+  active: PeriodTabId;
   actions?: React.ReactNode;
+  /** payments.view holders only — treasury data. */
+  withPayments?: boolean;
 }) {
-  const tabs = [
+  const tabs: ReadonlyArray<{ id: PeriodTabId; label: string; href: string }> = [
     { id: "overview", label: "Overview", href: `/payroll/${periodId}` },
     { id: "adjustments", label: "Adjustments", href: `/payroll/${periodId}/adjustments` },
     { id: "payslips", label: "Payslips", href: `/payroll/${periodId}/payslips` },
     { id: "review", label: "Review", href: `/payroll/${periodId}/review` },
-  ] as const;
+    ...(withPayments
+      ? [{ id: "payments" as PeriodTabId, label: "Payments", href: `/payroll/${periodId}/payments` }]
+      : []),
+  ];
 
   return (
     <div className="flex flex-col gap-3">
