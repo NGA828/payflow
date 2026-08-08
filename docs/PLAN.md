@@ -1,6 +1,6 @@
 # PayFlow — Master Engineering Plan
 
-Status: **Approved** — building. Phase 0 ✅ · Phase 1 ✅ · Phase 2 ✅ · Phase 3 ✅ · Phase 4 ✅ · Phase 5 ✅ (2026-08-07).
+Status: **Approved** — building. Phase 0 ✅ · Phase 1 ✅ · Phase 2 ✅ · Phase 3 ✅ · Phase 4 ✅ · Phase 5 ✅ · Phase 6 ✅ (2026-08-08).
 Date: 2026-08-07 · Branch: `arena/019fdb7f-payflow`
 
 Companion docs: `DESIGN.md` (Dribbble-derived visual research),
@@ -630,3 +630,5 @@ All validated at boot by `src/lib/env.ts` (Zod) — the app fails fast with a re
 22. **Sensitive-employment gating (P5)** — salary + payment *plaintext* are gated behind `employees.view_sensitive` (Company Admin, Accountant); HR Managers manage records without seeing compensation. Payment secrets are AES-256-GCM encrypted at rest (`v1.iv.tag.ct`), returned **masked** (`•••• 4521`) by default; reveal is an explicit `?reveal=1` server render for sensitive roles only. Audit metadata carries last-4 only, never plaintext or ciphertext.
 23. **Payment-edit semantics** — empty form fields mean "keep the stored secret" (merged server-side, then resulting-state completeness validated per method); switching methods clears the other method's encrypted columns so stale secrets never linger. CASH wipes everything.
 24. **Termination rules** — one-way (`TERMINATED` can't be reactivated; rehire = new record), date must be ≥ hire date and never future-dated (payroll consumes historical truth; scheduled departures stay ACTIVE until the day). ACTIVE ⇄ INACTIVE is free-form. Departments are derived from the chosen position (single select; the two can never disagree).
+25. **Period overlap semantics** — day-inclusive intersection (Aug 1–31 and Aug 31–Sep 30 DO overlap); creation rejects with the clashing period's name + dates (CONFLICT). Display name is automated: "August 2026" for whole-month ranges, else an explicit "15 Jun – 15 Sept 2026" range.
+26. **Single active prep period** — a company may only have one period in DRAFT/IN_PROGRESS/READY at a time; the next period opens when the current one is SUBMITTED. Only DRAFT periods with zero payslips can be deleted.

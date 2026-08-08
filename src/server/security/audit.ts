@@ -34,6 +34,7 @@ export type AuditAction =
   | "org.position_deleted"
   | "org.position_restored"
   | "payroll.period_created"
+  | "payroll.period_deleted"
   | "payroll.process_started"
   | "payroll.process_completed"
   | "payroll.submitted"

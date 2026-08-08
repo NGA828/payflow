@@ -14,6 +14,8 @@ import { updateCompanyInfo, updatePayrollSettings } from "@/server/services/comp
 import { createInitialDepartments, createPosition } from "@/server/services/org.service";
 import { completeSetup } from "@/server/services/setup.service";
 import { createEmployee, setEmployeeStatus, updatePaymentDetails } from "@/server/services/employee.service";
+import { acceptInvitationAsNewUser, inviteTeamMembers } from "@/server/services/invitation.service";
+import { generateToken } from "@/server/auth/tokens";
 import type { CompanyContext } from "@/server/tenant/context";
 
 export const E2E_USER = {
@@ -21,6 +23,13 @@ export const E2E_USER = {
   password: "E2ePass#2026",
   fullName: "E2E Verifier",
   companyName: "E2E Check SARL",
+};
+
+/** Accountant member — payroll periods/processing are accountant-only. */
+export const E2E_ACCOUNTANT = {
+  email: "acc@e2e.test",
+  password: "AccPass#2026!",
+  fullName: "Adam Accountant",
 };
 
 async function main() {
@@ -90,12 +99,7 @@ async function main() {
 
   // Demo employees for manual E2E — idempotent (skipped once any exist).
   const employeeCount = await db.employee.count({ where: { companyId } });
-  if (employeeCount > 0) {
-    console.log(`Fixture ready: ${E2E_USER.email} / ${E2E_USER.password} (${E2E_USER.companyName})`);
-    await disposeDb();
-    return;
-  }
-
+  if (employeeCount === 0) {
   const departments = await db.department.findMany({
     where: { companyId, status: "ACTIVE" },
     orderBy: { name: "asc" },
@@ -175,6 +179,28 @@ async function main() {
   });
 
   console.log("Demo employees created (PB-0001..PB-0004: bank, momo, inactive, missing payment).");
+
+  }
+
+  // Demo accountant (idempotent) — needed because only ACCOUNTANTs manage
+  // payroll periods, and the admin can't process payroll themselves.
+  const accUser = await db.user.findUnique({ where: { email: E2E_ACCOUNTANT.email } });
+  if (!accUser) {
+    await inviteTeamMembers(ctx, [E2E_ACCOUNTANT.email], "ACCOUNTANT");
+    const invite = await db.invitation.findFirstOrThrow({
+      where: { companyId, email: E2E_ACCOUNTANT.email, acceptedAt: null, revokedAt: null },
+    });
+    const known = generateToken();
+    await db.invitation.update({ where: { id: invite.id }, data: { tokenHash: known.hash } });
+    const accepted = await acceptInvitationAsNewUser(
+      known.raw,
+      E2E_ACCOUNTANT.fullName,
+      E2E_ACCOUNTANT.password,
+    );
+    await db.user.update({ where: { id: accepted.userId }, data: { emailVerifiedAt: new Date() } });
+    console.log(`Demo accountant created: ${E2E_ACCOUNTANT.email} / ${E2E_ACCOUNTANT.password}`);
+  }
+
   console.log(`Fixture ready: ${E2E_USER.email} / ${E2E_USER.password} (${E2E_USER.companyName})`);
   await disposeDb();
 }
