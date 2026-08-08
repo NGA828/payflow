@@ -1,6 +1,6 @@
 # PayFlow — Master Engineering Plan
 
-Status: **Approved** — building. Phase 0 ✅ · Phase 1 ✅ · Phase 2 ✅ · Phase 3 ✅ · Phase 4 ✅ · Phase 5 ✅ · Phase 6 ✅ · Phase 7 ✅ (2026-08-08).
+Status: **Approved** — building. Phase 0 ✅ · Phase 1 ✅ · Phase 2 ✅ · Phase 3 ✅ · Phase 4 ✅ · Phase 5 ✅ · Phase 6 ✅ · Phase 7 ✅ · Phase 8 ✅ (2026-08-08).
 Date: 2026-08-07 · Branch: `arena/019fdb7f-payflow`
 
 Companion docs: `DESIGN.md` (Dribbble-derived visual research),
@@ -634,3 +634,6 @@ All validated at boot by `src/lib/env.ts` (Zod) — the app fails fast with a re
 26. **Single active prep period** — a company may only have one period in DRAFT/IN_PROGRESS/READY at a time; the next period opens when the current one is SUBMITTED. Only DRAFT periods with zero payslips can be deleted.
 27. **Adjustment amounts** — positive whole-XAF integers only (a zero amount row is pointless); category is DERIVED from the type (never client-selectable). OVERTIME carries only hours: the amount is computed as hours × (salary ÷ (hoursPerWeek × 52/12)) × multiplier via the shared big.js helper the engine also uses — entry-time and payslip numbers always agree.
 28. **Adjustment editability window** — editable in DRAFT **and READY** (re-processing in READY replaces draft payslips, so edits stay consistent), frozen while IN_PROGRESS (engine running), locked from SUBMITTED on (matches the brief's "locked after SUBMITTED").
+29. **Payslip footing invariant** — every leaf line (basic, OT, bonuses, allowances, tax, each deduction part) is rounded half-up to whole XAF FIRST, then gross/deductions/net are composed by exact integer addition. A stored payslip therefore always reconciles to the XAF: basic+OT+bonuses+allowances = gross, parts+tax = deductions, gross−deductions = net. Tax base is the rounded gross (auditors check the printed number, not a hidden fraction).
+30. **Payslip storage = the 8 printed lines** — the deduction-component breakdown (loan/advance/penalty/other/recovery-tax) is NOT persisted per payslip; it is recomputed from the period's adjustments when a detail view or PDF needs it (P10). One source of truth (adjustments), zero drift on reprocess.
+31. **Processing driver = inline (decision #8 realized)** — `processPayroll` runs synchronously in the request, writing real `PayrollRun` rows (RUNNING→COMPLETED/FAILED with live `processedEmployees` progress) and enforcing state-machine edges DRAFT→IN_PROGRESS, READY→IN_PROGRESS (idempotent reprocess — DRAFT payslips updated in place keeping `id`/`payslipNumber`, sequence allocated once per run), IN_PROGRESS→DRAFT (system rollback on failure, run marked FAILED with `errorMessage`, audit `payroll.process_failed`). One RUNNING run per period (CONFLICT otherwise). BullMQ drops in behind this same service boundary when Redis exists.

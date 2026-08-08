@@ -11,6 +11,7 @@ import {
 } from "@/server/tenant/context";
 import { PERMISSIONS } from "@/server/rbac/permissions";
 import { createPeriod, deletePeriod } from "@/server/services/payroll-period.service";
+import { processPayroll } from "@/server/services/payroll-processing.service";
 import {
   createAdjustment,
   deleteAdjustment,
@@ -122,4 +123,35 @@ export async function deleteAdjustmentAction(
   revalidatePath(`/payroll/${payrollPeriodId}`);
   revalidatePath(`/payroll/${payrollPeriodId}/adjustments`);
   return { status: "success", message: "Adjustment removed." };
+}
+
+// ── Processing (/payroll/[id]) ─────────────────────────────────────
+
+export async function processPayrollAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const payrollPeriodId = String(formData.get("payrollPeriodId") ?? "");
+  try {
+    const ctx = await requireCompanyPermission(PERMISSIONS.PAYROLL_PROCESS);
+    assertCompanyWritable(ctx);
+    const result = await processPayroll(ctx, payrollPeriodId, await requestMeta());
+    revalidatePath(`/payroll/${payrollPeriodId}`);
+    revalidatePath(`/payroll/${payrollPeriodId}/payslips`);
+    revalidatePath("/payroll");
+    const warning =
+      result.missingPaymentCount > 0
+        ? ` Heads-up: ${result.missingPaymentCount} eligible employee${result.missingPaymentCount === 1 ? " is" : "s are"} missing payment details.`
+        : "";
+    const skipped =
+      result.skippedApprovedPayslips > 0
+        ? ` ${result.skippedApprovedPayslips} approved payslip${result.skippedApprovedPayslips === 1 ? "" : "s"} left untouched.`
+        : "";
+    return {
+      status: "success",
+      message: `Payroll ready — ${result.totalEmployees} payslip${result.totalEmployees === 1 ? "" : "s"} computed.${skipped}${warning}`,
+    };
+  } catch (error) {
+    return errorState(error);
+  }
 }

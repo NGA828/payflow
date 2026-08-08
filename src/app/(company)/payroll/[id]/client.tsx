@@ -2,14 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Play, Trash2 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { FormError } from "@/components/ui/form-error";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { IDLE_FORM_STATE } from "@/lib/form-state";
-import { deletePeriodAction } from "@/features/payroll/actions";
+import { useSuccessToast } from "@/lib/use-success-toast";
+import { deletePeriodAction, processPayrollAction } from "@/features/payroll/actions";
 
 /**
  * Destructive delete for DRAFT periods. On success the period no longer
@@ -60,5 +61,32 @@ export function DeletePeriodButton({
         </form>
       </Dialog>
     </>
+  );
+}
+
+/**
+ * Process / re-process button. Inline runs finish inside the request, so the
+ * pending state is brief and the toast carries the totals summary.
+ */
+export function ProcessPayrollButton({
+  periodId,
+  reprocess,
+}: {
+  periodId: string;
+  reprocess: boolean;
+}) {
+  const [state, formAction] = useActionState(processPayrollAction, IDLE_FORM_STATE);
+  useSuccessToast(state);
+  const hasError = state.status === "error" && Boolean(state.message);
+
+  return (
+    <form action={formAction} className="flex items-center gap-2">
+      <input type="hidden" name="payrollPeriodId" value={periodId} />
+      <SubmitButton variant={reprocess ? "secondary" : "primary"} size="sm">
+        <Play className="h-3.5 w-3.5" />
+        {reprocess ? "Re-process" : "Process payroll"}
+      </SubmitButton>
+      {hasError && <p className="text-[12px] text-danger">{state.message}</p>}
+    </form>
   );
 }

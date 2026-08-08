@@ -1,9 +1,13 @@
-import { Prisma, type EmployeeStatus, type PayrollPeriodStatus } from "@prisma/client";
+import type { PayrollPeriodStatus } from "@prisma/client";
 import { getDb } from "@/lib/db";
 import { AppError } from "@/server/errors";
 import { audit } from "@/server/security/audit";
 import { PREP_STATUSES } from "@/server/payroll/state-machine";
-import { isPayrollEligible, parseDateOnly } from "@/server/services/employee.service";
+import {
+  isPayrollEligible,
+  parseDateOnly,
+  type PayrollEligibilityRecord,
+} from "@/server/services/employee.service";
 import type { CompanyContext } from "@/server/tenant/context";
 import { formatDate, formatPeriodLabel } from "@/lib/format";
 import type { CreatePeriodInput } from "@/validations/payroll";
@@ -33,12 +37,7 @@ export type ExclusionReason =
   | "TERMINATED_BEFORE_PERIOD"
   | "ZERO_SALARY";
 
-export interface EligibilitySubject {
-  status: EmployeeStatus;
-  dateHired: Date;
-  terminationDate: Date | null;
-  basicSalary: Prisma.Decimal | string | number;
-}
+export type EligibilitySubject = PayrollEligibilityRecord;
 
 /** Why an employee is out of scope for a period; null when eligible. */
 export function exclusionReason(

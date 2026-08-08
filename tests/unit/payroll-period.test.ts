@@ -7,6 +7,7 @@ import type { PayrollPeriodStatus } from "@prisma/client";
 import {
   PERIOD_TRANSITIONS,
   PREP_STATUSES,
+  SYSTEM_TRANSITIONS,
   assertTransition,
   canTransition,
   isPrepStatus,
@@ -34,7 +35,9 @@ describe("period state machine", () => {
     const allowed: Array<[PayrollPeriodStatus, PayrollPeriodStatus]> = [
       ["DRAFT", "IN_PROGRESS"],
       ["IN_PROGRESS", "READY"],
+      ["IN_PROGRESS", "DRAFT"], // system rollback after a failed run
       ["READY", "SUBMITTED"],
+      ["READY", "IN_PROGRESS"], // idempotent re-process
       ["SUBMITTED", "APPROVED"],
       ["APPROVED", "READY"], // unlock
       ["APPROVED", "PAID"],
@@ -53,6 +56,7 @@ describe("period state machine", () => {
   it("maps each transition to its permission", () => {
     expect(transitionPermission("DRAFT", "IN_PROGRESS")).toBe("payroll.process");
     expect(transitionPermission("IN_PROGRESS", "READY")).toBe("payroll.process");
+    expect(transitionPermission("READY", "IN_PROGRESS")).toBe("payroll.process");
     expect(transitionPermission("READY", "SUBMITTED")).toBe("payroll.submit");
     expect(transitionPermission("SUBMITTED", "APPROVED")).toBe("payroll.approve");
     expect(transitionPermission("APPROVED", "READY")).toBe("payroll.unlock");
@@ -60,11 +64,18 @@ describe("period state machine", () => {
     expect(transitionPermission("PAID", "LOCKED")).toBe("payroll.approve");
   });
 
+  it("flags only the failure rollback as a system edge", () => {
+    expect(SYSTEM_TRANSITIONS.has("IN_PROGRESS->DRAFT")).toBe(true);
+    expect(SYSTEM_TRANSITIONS.has("READY->IN_PROGRESS")).toBe(false); // user-driven reprocess
+    expect(SYSTEM_TRANSITIONS.has("APPROVED->READY")).toBe(false); // user-driven unlock
+  });
+
   it("assertTransition rejects with a readable reason", () => {
     expect(() => assertTransition("DRAFT", "READY")).toThrowError(/cannot move from DRAFT to READY/);
     expect(() => assertTransition("LOCKED", "DRAFT")).toThrowError(/none \(locked\)/);
     expect(() => assertTransition("PAID", "READY")).toThrowError();
     assertTransition("READY", "SUBMITTED"); // does not throw
+    assertTransition("READY", "IN_PROGRESS"); // reprocess does not throw
   });
 
   it("tracks the single-active-prep window", () => {

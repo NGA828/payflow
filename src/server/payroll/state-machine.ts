@@ -16,13 +16,16 @@ export const PERIOD_TRANSITIONS: Readonly<
   Record<PayrollPeriodStatus, readonly PayrollPeriodStatus[]>
 > = {
   DRAFT: ["IN_PROGRESS"],
-  IN_PROGRESS: ["READY"],
-  READY: ["SUBMITTED"],
+  IN_PROGRESS: ["READY", "DRAFT"], // DRAFT here = system rollback after a failed run
+  READY: ["SUBMITTED", "IN_PROGRESS"], // IN_PROGRESS here = idempotent re-process
   SUBMITTED: ["APPROVED"],
   APPROVED: ["READY", "PAID"], // READY here = the guarded unlock path
   PAID: ["LOCKED"],
   LOCKED: [],
 };
+
+/** Edges that never come from a user click (used by the processing service). */
+export const SYSTEM_TRANSITIONS: ReadonlySet<string> = new Set(["IN_PROGRESS->DRAFT"]);
 
 /** Permission a transition demands (the unlock override is listed separately). */
 export const TRANSITION_PERMISSION: Readonly<
@@ -30,6 +33,7 @@ export const TRANSITION_PERMISSION: Readonly<
 > = {
   "DRAFT->IN_PROGRESS": PERMISSIONS.PAYROLL_PROCESS,
   "IN_PROGRESS->READY": PERMISSIONS.PAYROLL_PROCESS,
+  "READY->IN_PROGRESS": PERMISSIONS.PAYROLL_PROCESS,
   "READY->SUBMITTED": PERMISSIONS.PAYROLL_SUBMIT,
   "SUBMITTED->APPROVED": PERMISSIONS.PAYROLL_APPROVE,
   "APPROVED->READY": PERMISSIONS.PAYROLL_UNLOCK,

@@ -40,6 +40,7 @@ export type AuditAction =
   | "payroll.adjustment_deleted"
   | "payroll.process_started"
   | "payroll.process_completed"
+  | "payroll.process_failed"
   | "payroll.submitted"
   | "payroll.approved"
   | "payroll.rejected"

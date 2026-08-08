@@ -18,12 +18,13 @@ export function PeriodPageHeader({
   name: string;
   status: PayrollPeriodStatus;
   dateRange: string;
-  active: "overview" | "adjustments";
+  active: "overview" | "adjustments" | "payslips";
   actions?: React.ReactNode;
 }) {
   const tabs = [
     { id: "overview", label: "Overview", href: `/payroll/${periodId}` },
     { id: "adjustments", label: "Adjustments", href: `/payroll/${periodId}/adjustments` },
+    { id: "payslips", label: "Payslips", href: `/payroll/${periodId}/payslips` },
   ] as const;
 
   return (
