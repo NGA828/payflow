@@ -9,6 +9,7 @@ import {
   type PayrollEligibilityRecord,
 } from "@/server/services/employee.service";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 import { formatDate, formatPeriodLabel } from "@/lib/format";
 import type { CreatePeriodInput } from "@/validations/payroll";
 
@@ -240,6 +241,7 @@ export async function createPeriod(
   input: CreatePeriodInput,
   meta: RequestMeta = {},
 ): Promise<{ id: string; name: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const start = parseDateOnly(input.startDate);
   const end = parseDateOnly(input.endDate);
@@ -294,6 +296,7 @@ export async function deletePeriod(
   periodId: string,
   meta: RequestMeta = {},
 ): Promise<{ name: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const period = await db.payrollPeriod.findFirst({
     where: { id: periodId, companyId: ctx.company.id },

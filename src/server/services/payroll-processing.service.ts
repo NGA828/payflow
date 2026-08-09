@@ -15,6 +15,7 @@ import { roundWholeXaf } from "@/server/payroll/money";
 import { assertTransition } from "@/server/payroll/state-machine";
 import { isPaymentComplete } from "@/server/services/employee.service";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 
 interface RequestMeta {
   ipAddress?: string | null;
@@ -87,6 +88,7 @@ export async function processPayroll(
   payrollPeriodId: string,
   meta: RequestMeta = {},
 ): Promise<ProcessResult> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const period = await db.payrollPeriod.findFirst({
     where: { id: payrollPeriodId, companyId: ctx.company.id },

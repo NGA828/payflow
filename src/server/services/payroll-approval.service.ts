@@ -5,6 +5,7 @@ import { assertTransition } from "@/server/payroll/state-machine";
 import { ensurePayments } from "@/server/services/payment.service";
 import { notifyPayslipsAvailable } from "@/server/services/payslip.service";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 
 /**
  * Review & approval lifecycle (P9): READY → SUBMITTED → APPROVED, with the
@@ -59,6 +60,7 @@ export async function submitPeriod(
   payrollPeriodId: string,
   meta: RequestMeta = {},
 ): Promise<{ name: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const period = await requirePeriodInCompany(ctx, payrollPeriodId);
   assertTransition(period.status, "SUBMITTED");
@@ -98,6 +100,7 @@ export async function approvePeriod(
   payrollPeriodId: string,
   meta: RequestMeta = {},
 ): Promise<{ name: string; employees: number }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const period = await requirePeriodInCompany(ctx, payrollPeriodId);
   assertTransition(period.status, "APPROVED");
@@ -136,6 +139,7 @@ export async function rejectPeriod(
   rawNote: string,
   meta: RequestMeta = {},
 ): Promise<{ name: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const note = normalizeReviewNote(rawNote, "Rejection note");
   const period = await requirePeriodInCompany(ctx, payrollPeriodId);
@@ -163,6 +167,7 @@ export async function unlockPeriod(
   rawReason: string,
   meta: RequestMeta = {},
 ): Promise<{ name: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const reason = normalizeReviewNote(rawReason, "Unlock reason");
   const period = await requirePeriodInCompany(ctx, payrollPeriodId);

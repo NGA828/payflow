@@ -9,6 +9,7 @@ import {
   maskEncrypted,
 } from "@/server/security/crypto";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 import {
   EMPLOYEE_PAGE_SIZE,
   type EmployeeDirectoryQuery,
@@ -347,6 +348,7 @@ export async function createEmployee(
   input: EmployeeFormInput,
   meta: RequestMeta = {},
 ): Promise<{ id: string; employeeCode: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const position = await requirePositionInCompany(ctx, input.positionId);
 
@@ -407,6 +409,7 @@ export async function updateEmployee(
   input: EmployeeFormInput,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const existing = await requireEmployeeInCompany(ctx, employeeId);
   const position = await requirePositionInCompany(ctx, input.positionId);
@@ -463,6 +466,7 @@ export async function updatePaymentDetails(
   input: PaymentDetailsInput,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const existing = await requireEmployeeInCompany(ctx, employeeId);
 
@@ -541,6 +545,7 @@ export async function setEmployeeStatus(
   status: "ACTIVE" | "INACTIVE",
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const existing = await requireEmployeeInCompany(ctx, employeeId);
 
@@ -575,6 +580,7 @@ export async function terminateEmployee(
   terminationDate: string,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const existing = await requireEmployeeInCompany(ctx, employeeId);
 

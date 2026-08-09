@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { AppError } from "@/server/errors";
 import { audit } from "@/server/security/audit";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 import { inviteTeamMembers } from "@/server/services/invitation.service";
 import type { InvitableRole } from "@/validations/team";
 
@@ -100,6 +101,7 @@ export async function changeMemberRole(
   newRole: InvitableRole,
   meta: RequestMeta = {},
 ): Promise<{ changed: boolean }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const target = await db.membership.findFirst({
     where: { id: membershipId, companyId: ctx.company.id },
@@ -144,6 +146,7 @@ export async function setMembershipStatus(
   action: "disable" | "enable",
   meta: RequestMeta = {},
 ): Promise<{ changed: boolean }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const target = await db.membership.findFirst({
     where: { id: membershipId, companyId: ctx.company.id },
@@ -204,6 +207,7 @@ export async function revokeInvitation(
   invitationId: string,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const invitation = await db.invitation.findFirst({
     where: { id: invitationId, companyId: ctx.company.id },
@@ -235,6 +239,7 @@ export async function resendInvitation(
   invitationId: string,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const invitation = await db.invitation.findFirst({
     where: { id: invitationId, companyId: ctx.company.id },

@@ -64,7 +64,25 @@ export const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
+const PORTAL_NAV: NavGroup[] = [
+  {
+    label: "My Pay",
+    items: [
+      { href: "/portal", label: "Dashboard", icon: LayoutDashboard, permission: null },
+      { href: "/portal/payslips", label: "My payslips", icon: FileText, permission: null },
+      { href: "/portal/payments", label: "Payment history", icon: Wallet, permission: null },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { href: "/portal/profile", label: "My profile", icon: Settings, permission: null },
+    ],
+  },
+];
+
 export function navForRole(role: Role): NavGroup[] {
+  if (role === "EMPLOYEE") return PORTAL_NAV;
   return NAV_GROUPS.map((group) => ({
     ...group,
     items: group.items.filter(

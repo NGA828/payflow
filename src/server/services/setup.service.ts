@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { AppError } from "@/server/errors";
 import { audit } from "@/server/security/audit";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 
 /**
  * Setup wizard: 5 linear steps, resumable. `Company.setupStep` is the highest
@@ -48,6 +49,7 @@ export function resolveRequestedStep(
 
 /** Marks a step as completed; advances stored progress to the next step. */
 export async function advanceSetupStep(ctx: CompanyContext, completedStep: number): Promise<void> {
+  assertCompanyWritable(ctx);
   const next = Math.min(clampStep(completedStep) + 1, FINAL_STEP);
   if (next > ctx.company.setupStep) {
     await getDb().company.update({
@@ -90,6 +92,7 @@ export async function completeSetup(
   ctx: CompanyContext,
   meta: { ipAddress?: string | null; userAgent?: string | null } = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   if (ctx.company.setupStep < FINAL_STEP) {
     throw new AppError(
       "BAD_REQUEST",

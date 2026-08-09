@@ -3,9 +3,9 @@ import { getDb } from "@/lib/db";
 import { auth } from "@/server/auth";
 import { AppError } from "@/server/errors";
 import { requirePermission, type Permission } from "@/server/rbac/permissions";
-import { computeEffectiveStatus } from "@/server/tenant/status";
+import { computeEffectiveStatus, assertCompanyWritable } from "@/server/tenant/status";
 
-export { computeEffectiveStatus };
+export { computeEffectiveStatus, assertCompanyWritable };
 
 /**
  * Tenant resolution. The company context is ALWAYS derived from the
@@ -90,21 +90,3 @@ export async function requireCompanyPermission(permission: Permission): Promise<
   return ctx;
 }
 
-/**
- * Mutations are blocked in SUSPENDED and READ_ONLY workspaces. Call at the top
- * of every state-changing action, after permission checks.
- */
-export function assertCompanyWritable(ctx: Pick<CompanyContext, "effectiveStatus">): void {
-  if (ctx.effectiveStatus === "SUSPENDED") {
-    throw new AppError(
-      "SUSPENDED",
-      "This workspace is suspended. Contact PayFlow support to reactivate it.",
-    );
-  }
-  if (ctx.effectiveStatus === "READ_ONLY") {
-    throw new AppError(
-      "READ_ONLY",
-      "This workspace is read-only because the trial or subscription has ended. Activate a plan to make changes.",
-    );
-  }
-}

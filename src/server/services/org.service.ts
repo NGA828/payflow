@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { AppError } from "@/server/errors";
 import { audit } from "@/server/security/audit";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 import { dedupeCaseInsensitive } from "@/validations/company";
 import type { DepartmentFormInput, PositionFormInput } from "@/validations/org";
 
@@ -210,6 +211,7 @@ export async function createDepartment(
   input: DepartmentFormInput,
   meta: RequestMeta = {},
 ): Promise<{ id: string; name: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   await assertDepartmentNameAvailable(ctx.company.id, input.name);
 
@@ -249,6 +251,7 @@ export async function updateDepartment(
   input: DepartmentFormInput,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const existing = await db.department.findFirst({
     where: { id: departmentId, companyId: ctx.company.id },
@@ -296,6 +299,7 @@ export async function removeDepartment(
   departmentId: string,
   meta: RequestMeta = {},
 ): Promise<RemovalOutcome> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const department = await db.department.findFirst({
     where: { id: departmentId, companyId: ctx.company.id },
@@ -345,6 +349,7 @@ export async function restoreDepartment(
   departmentId: string,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const department = await db.department.findFirst({
     where: { id: departmentId, companyId: ctx.company.id },
@@ -386,6 +391,7 @@ export async function createPosition(
   input: PositionFormInput,
   meta: RequestMeta = {},
 ): Promise<{ id: string; title: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const department = await requireDepartmentInCompany(ctx, departmentId);
   if (department.status === "ARCHIVED") {
@@ -428,6 +434,7 @@ export async function updatePosition(
   input: PositionFormInput,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const position = await db.position.findFirst({
     where: { id: positionId, companyId: ctx.company.id },
@@ -462,6 +469,7 @@ export async function removePosition(
   positionId: string,
   meta: RequestMeta = {},
 ): Promise<RemovalOutcome> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const position = await db.position.findFirst({
     where: { id: positionId, companyId: ctx.company.id },
@@ -504,6 +512,7 @@ export async function restorePosition(
   positionId: string,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const position = await db.position.findFirst({
     where: { id: positionId, companyId: ctx.company.id },
@@ -535,6 +544,7 @@ export async function createInitialDepartments(
   names: string[],
   meta: RequestMeta = {},
 ): Promise<string[]> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const wanted = dedupeCaseInsensitive(names.map((n) => n.trim()).filter(Boolean));
   if (wanted.length === 0) return [];
