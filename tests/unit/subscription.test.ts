@@ -17,10 +17,10 @@ describe("subscription & trial clock (P14)", () => {
   });
 
   it("blocks mutations in READ_ONLY and SUSPENDED", () => {
-    expect(() => assertCompanyWritable({ effectiveStatus: "READ_ONLY" as any })).toThrow(/read-only/);
-    expect(() => assertCompanyWritable({ effectiveStatus: "SUSPENDED" as any })).toThrow(/suspended/);
-    expect(() => assertCompanyWritable({ effectiveStatus: "TRIAL" as any })).not.toThrow();
-    expect(() => assertCompanyWritable({ effectiveStatus: "ACTIVE" as any })).not.toThrow();
+    expect(() => assertCompanyWritable({ effectiveStatus: "READ_ONLY" })).toThrow(/read-only/);
+    expect(() => assertCompanyWritable({ effectiveStatus: "SUSPENDED" })).toThrow(/suspended/);
+    expect(() => assertCompanyWritable({ effectiveStatus: "TRIAL" })).not.toThrow();
+    expect(() => assertCompanyWritable({ effectiveStatus: "ACTIVE" })).not.toThrow();
   });
 
   it("billing activation is allowed in READ_ONLY (exception) — tested via service separation", () => {

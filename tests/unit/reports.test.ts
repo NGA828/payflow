@@ -55,7 +55,7 @@ describe("excel export", () => {
         avgNet: "0",
         totalEmployeesPaid: 0,
       },
-    } as any;
+    } as unknown as import("@/server/services/report.service").SummaryReport;
 
     const { buffer, filename } = await buildExcelReport("summary", fakeSummary, {
       companyName: "Test Co",
