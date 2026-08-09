@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { getDb } from "@/lib/db";
 import { audit } from "@/server/security/audit";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 import type { CompanyInfoInput, PayrollSettingsInput } from "@/validations/company";
 
 interface RequestMeta {
@@ -31,6 +32,7 @@ export async function updateCompanyInfo(
   input: CompanyInfoInput,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const before = ctx.company;
 
@@ -63,6 +65,7 @@ export async function updatePayrollSettings(
   input: PayrollSettingsInput,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const before = ctx.company;
 

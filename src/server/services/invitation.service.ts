@@ -10,6 +10,7 @@ import { invitationEmail } from "@/server/email/templates";
 import { audit } from "@/server/security/audit";
 import { computeEffectiveStatus } from "@/server/tenant/status";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 import type { InvitableRole } from "@/validations/team";
 
 interface RequestMeta {
@@ -34,6 +35,7 @@ export async function inviteTeamMembers(
   role: InvitableRole,
   meta: RequestMeta = {},
 ): Promise<InviteBatchResult> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const uniqueEmails = [...new Set(emails.map((e) => e.toLowerCase().trim()))];
   if (uniqueEmails.length === 0) {

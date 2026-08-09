@@ -8,6 +8,7 @@ import { assertTransition } from "@/server/payroll/state-machine";
 import { buildPaymentsCsv, paymentsCsvFilename, type PaymentCsvRow } from "@/server/payroll/payment-csv";
 import { roundWholeXaf } from "@/server/payroll/money";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 
 /**
  * Payments (P10). Lifecycle:
@@ -179,6 +180,7 @@ export async function updatePaymentStatus(
   input: PaymentStatusInput,
   meta: RequestMeta = {},
 ): Promise<{ employeeCode: string; outcome: PaymentStatusOutcome; periodNowPaid: boolean }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const payment = await db.payment.findFirst({
     where: { id: paymentId, companyId: ctx.company.id },
@@ -293,6 +295,7 @@ export async function lockPeriod(
   payrollPeriodId: string,
   meta: RequestMeta = {},
 ): Promise<{ name: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const period = await requirePeriodInCompany(ctx, payrollPeriodId);
   assertTransition(period.status, "LOCKED");

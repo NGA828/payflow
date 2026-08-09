@@ -5,6 +5,7 @@ import { audit } from "@/server/security/audit";
 import { overtimePayForHours } from "@/server/payroll/money";
 import { isPayrollEligible } from "@/server/services/employee.service";
 import type { CompanyContext } from "@/server/tenant/context";
+import { assertCompanyWritable } from "@/server/tenant/status";
 import { categoryOf } from "@/validations/adjustment";
 import type { AdjustmentFormInput } from "@/validations/adjustment";
 
@@ -225,6 +226,7 @@ export async function createAdjustment(
   input: AdjustmentFormInput,
   meta: RequestMeta = {},
 ): Promise<{ id: string }> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const period = await requirePeriodInCompany(ctx, payrollPeriodId);
   assertAdjustmentsEditable(period.status, period.name);
@@ -272,6 +274,7 @@ export async function updateAdjustment(
   input: AdjustmentFormInput,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const existing = await db.payrollAdjustment.findFirst({
     where: { id: adjustmentId, companyId: ctx.company.id },
@@ -318,6 +321,7 @@ export async function deleteAdjustment(
   adjustmentId: string,
   meta: RequestMeta = {},
 ): Promise<void> {
+  assertCompanyWritable(ctx);
   const db = getDb();
   const existing = await db.payrollAdjustment.findFirst({
     where: { id: adjustmentId, companyId: ctx.company.id },
