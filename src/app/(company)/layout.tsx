@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
-import { ShieldAlert, MailWarning, LogOut, Building2 } from "lucide-react";
+import { ShieldAlert, MailWarning, LogOut, Building2, Briefcase } from "lucide-react";
 import { requireCompanyContext, getSessionUser } from "@/server/tenant/context";
 import { AppError } from "@/server/errors";
 import { AppShell } from "@/components/layout/app-shell";
 import { logoutAction } from "@/features/auth/actions";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 function GateScreen({
   icon,
@@ -42,6 +44,38 @@ export default async function CompanyLayout({ children }: { children: React.Reac
   let ctx;
   try {
     ctx = await requireCompanyContext();
+    // Staff-only area: EMPLOYEE role must use the employee portal.
+    const STAFF_ROLES = ["COMPANY_ADMIN", "HR_MANAGER", "ACCOUNTANT"] as const;
+    if (!(STAFF_ROLES as readonly string[]).includes(ctx.membership.role)) {
+      // EMPLOYEE attempting to access company routes — bounce to portal gate.
+      if (ctx.membership.role === "EMPLOYEE") {
+        return (
+          <div className="flex min-h-screen flex-col items-center justify-center bg-canvas px-6 text-center">
+            <div className="w-full max-w-sm rounded-xl border border-border bg-white p-8 shadow-card">
+              <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-indigo-50">
+                <Briefcase className="h-6 w-6 text-primary" strokeWidth={1.8} />
+              </div>
+              <h1 className="text-lg font-bold text-ink">Employee portal</h1>
+              <p className="mt-2 text-[13px] leading-relaxed text-body">
+                Your account is an employee account. Company management areas are not accessible with this role. Open the employee portal to view your payslips and payments.
+              </p>
+              <p className="mt-3 text-xs text-muted">Signed in as {ctx.user.email}</p>
+              <div className="mt-5 flex flex-col gap-2">
+                <Link href="/portal" className={buttonVariants({ variant: "primary" })}>
+                  Go to employee portal
+                </Link>
+                <form action={logoutAction}>
+                  <button type="submit" className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-semibold text-ink shadow-sm transition-colors hover:bg-canvas">
+                    <LogOut className="h-4 w-4" /> Sign out
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      throw new AppError("FORBIDDEN", "Staff access required.");
+    }
   } catch (error) {
     if (error instanceof AppError) {
       if (error.code === "UNAUTHENTICATED") redirect("/login");

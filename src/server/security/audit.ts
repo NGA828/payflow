@@ -51,6 +51,7 @@ export type AuditAction =
   | "payment.exported"
   | "payslip.generated"
   | "payslip.downloaded"
+  | "report.exported"
   | "subscription.state_changed"
   | "admin.company_suspended"
   | "admin.company_reactivated";

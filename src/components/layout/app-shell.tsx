@@ -56,7 +56,7 @@ export function AppShell({
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 flex w-[228px] flex-col bg-ink text-[13px]">
         <div className="px-4 pt-5 pb-3">
-          <Link href="/dashboard">
+          <Link href={user.role === "EMPLOYEE" ? "/portal" : "/dashboard"}>
             <Logo dark />
           </Link>
         </div>
