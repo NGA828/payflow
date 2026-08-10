@@ -16,14 +16,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "db:generate": "bash scripts/prisma.sh generate",
+    "db:generate": "node scripts/prisma.mjs generate",
     "db:up": "tsx scripts/dev-db.ts",
-    "db:migrate": "bash scripts/prisma.sh migrate dev",
-    "db:deploy": "bash scripts/prisma.sh migrate deploy",
-    "db:seed": "bash scripts/prisma.sh db seed",
-    "db:reset": "bash scripts/prisma.sh migrate reset --force",
+    "db:migrate": "node scripts/prisma.mjs migrate dev",
+    "db:deploy": "node scripts/prisma.mjs migrate deploy",
+    "db:seed": "node scripts/prisma.mjs db seed",
+    "db:setup": "tsx scripts/db-setup.ts",
+    "db:reset": "node scripts/prisma.mjs migrate reset --force",
     "worker": "tsx src/server/jobs/worker.ts",
-    "postinstall": "bash scripts/prisma.sh generate"
+    "postinstall": "node scripts/prisma.mjs generate"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma",

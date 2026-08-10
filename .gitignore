@@ -34,3 +34,6 @@ next-env.d.ts
 # design-scratch
 /image-search/
 __pycache__/
+
+# embedded dev database (PGlite, Docker-free)
+/.pglite-data/

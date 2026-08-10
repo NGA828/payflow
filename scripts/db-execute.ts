@@ -8,6 +8,7 @@
  */
 import "dotenv/config";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import pg from "pg";
 import { PGlite } from "@electric-sql/pglite";
 
@@ -20,7 +21,7 @@ async function main() {
   const sql = readFileSync(file, "utf8");
 
   if (process.env.DB_DRIVER === "pglite") {
-    const dataDir = process.env.PGLITE_DATA ?? `${process.env.HOME}/opt/pglite-data`;
+    const dataDir = resolve(process.env.PGLITE_DATA ?? ".pglite-data");
     const client = new PGlite(dataDir);
     await client.waitReady;
     await client.exec(sql);

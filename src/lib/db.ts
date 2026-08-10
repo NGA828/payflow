@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PGlite } from "@electric-sql/pglite";
 import { PrismaPGlite } from "pglite-prisma-adapter";
+import { resolve } from "node:path";
 import pg from "pg";
 
 /**
@@ -18,6 +19,14 @@ export type DbDriver = "pg" | "pglite";
 
 export function getDbDriver(): DbDriver {
   return process.env.DB_DRIVER === "pglite" ? "pglite" : "pg";
+}
+
+/**
+ * PGlite data directory. Default is repo-relative (`./.pglite-data`) so it
+ * works on Windows too — process.env.HOME is undefined under cmd/PowerShell.
+ */
+export function getPgliteDataDir(): string {
+  return resolve(process.env.PGLITE_DATA ?? ".pglite-data");
 }
 
 interface DbGlobal {
@@ -51,8 +60,7 @@ function getPgPool(): pg.Pool {
 export async function getPGlite(): Promise<PGlite> {
   const s = store();
   if (!s.pglite) {
-    const dataDir = process.env.PGLITE_DATA ?? `${process.env.HOME}/opt/pglite-data`;
-    const instance = new PGlite(dataDir);
+    const instance = new PGlite(getPgliteDataDir());
     await instance.waitReady;
     s.pglite = instance;
   }
@@ -76,8 +84,7 @@ export function getDb(): PrismaClient {
   if (!s.prisma) {
     if (getDbDriver() === "pglite") {
       // Embedded driver: PGlite is ready on first await internally.
-      const dataDir = process.env.PGLITE_DATA ?? `${process.env.HOME}/opt/pglite-data`;
-      s.pglite = new PGlite(dataDir);
+      s.pglite = new PGlite(getPgliteDataDir());
       s.prisma = new PrismaClient({ adapter: new PrismaPGlite(s.pglite) });
     } else {
       s.prisma = new PrismaClient({

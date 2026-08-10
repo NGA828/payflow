@@ -13,37 +13,58 @@ ExcelJS · Zod · Vitest · Playwright
 ## Quick start (local machine)
 
 ```bash
-cp .env.example .env          # then set AUTH_SECRET and ENCRYPTION_KEY
-npm install
+cp .env.example .env          # Windows: copy .env.example .env
+npm install                   # generates the Prisma client automatically
 docker compose up -d          # postgres, redis, mailhog (http://localhost:8025)
 npm run db:migrate
 npm run db:seed
 npm run dev                   # http://localhost:3000
 ```
 
-Generate secrets:
+Then edit `.env` and set `AUTH_SECRET` and `ENCRYPTION_KEY`:
 
 ```bash
-openssl rand -base64 32       # AUTH_SECRET
+openssl rand -base64 32       # AUTH_SECRET (any OS: Git Bash / WSL / macOS)
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"  # ENCRYPTION_KEY
+```
+
+### Windows (no Docker, no bash)
+
+Everything runs natively in cmd/PowerShell — scripts are Node-based:
+
+```bat
+copy .env.example .env
+:: edit .env — set AUTH_SECRET, ENCRYPTION_KEY, DB_DRIVER="pglite", PGLITE_DATA="./.pglite-data"
+npm install
+npm run db:setup
+npm run dev
 ```
 
 ### No Docker?
 
 Run with the embedded database driver (PostgreSQL compiled to WASM, persisted
-in `./.pglite-data`):
+in `./.pglite-data`) — set in `.env`:
 
 ```bash
-# in .env
 DB_DRIVER="pglite"
 PGLITE_DATA="./.pglite-data"
 ```
 
-then apply `src/prisma/migrations/*/migration.sql` with
-`npx tsx scripts/db-execute.ts <file>` and seed as usual. `npm run db:up`
-remains available if you want a PostgreSQL wire server on `127.0.0.1:5432` for
-external SQL tools (stop it before starting the app — one process per data
-dir). Without Redis, the inline queue driver runs background jobs in-process.
+then one command applies pending migrations and seeds (idempotent, safe to
+re-run): `npm run db:setup`. `npm run db:up` remains available if you want a
+PostgreSQL wire server on `127.0.0.1:5432` for external SQL tools (stop it
+before starting the app — one process per data dir). Without Redis, the
+inline queue driver runs background jobs in-process.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `'bash' is not recognized` (Windows) | Fixed — all npm scripts call `node scripts/prisma.mjs`. Pull latest and `npm install` |
+| `@prisma/client did not initialize yet` on /login or /register | `npm run db:generate`, then restart `npm run dev` |
+| `WebAssembly.instantiate(): ... extends past end of the module` when seeding | Corrupted PGlite download. `rd /s /q node_modules\@electric-sql` (macOS/Linux: `rm -rf node_modules/@electric-sql`), then `npm cache clean --force && npm install`, then `npm run db:setup` |
+| `docker` is not recognized | Optional — use the embedded driver above; no Docker needed |
+| Data dir unopenable / two-process crash | Stop other processes using it and re-run `npm run db:setup` (it rebuilds automatically) |
 
 ### Sandbox rebuilds
 
@@ -69,7 +90,8 @@ dev data dir while `next dev` is running (tests are exempt by construction).
 | `npm run lint` / `typecheck` / `format` | static checks |
 | `npm run test` / `test:e2e` | Vitest / Playwright |
 | `npm run db:migrate` / `db:seed` / `db:reset` | Prisma lifecycle |
-| `npm run db:up` | PGlite Postgres (Docker-free) |
+| `npm run db:setup` | Embedded DB: migrate + seed in one idempotent step |
+| `npm run db:up` | PGlite Postgres wire server (Docker-free) |
 | `npm run worker` | BullMQ worker process |
 | `/api/health` | env, database and queue status |
 

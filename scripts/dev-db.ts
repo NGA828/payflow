@@ -5,11 +5,12 @@
  *
  * Usage: npm run db:up
  */
+import { resolve } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 
 async function main() {
-  const dataDir = process.env.PGLITE_DATA ?? `${process.env.HOME}/opt/pglite-data`;
+  const dataDir = resolve(process.env.PGLITE_DATA ?? ".pglite-data");
   const port = Number(process.env.PGLITE_PORT ?? 5432);
 
   const db = new PGlite(dataDir);
